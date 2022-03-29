@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using RomDiscord.Models;
 using System.Diagnostics;
 
@@ -15,7 +16,23 @@ namespace RomDiscord.Controllers
 
 		public IActionResult Index()
 		{
+			if (User.Identity.IsAuthenticated)
+			{
+				Console.WriteLine(User.FindFirst(c => c.Type == "username")?.Value);
+			}
 			return View();
+		}
+		
+		[HttpGet]
+		public IActionResult Login(string returnUrl = "/")
+		{
+			return Challenge(new AuthenticationProperties() { RedirectUri = returnUrl });
+		}
+
+		[HttpGet]
+		public IActionResult LoginDiscord(string returnUrl = "/")
+		{
+			return Challenge(new AuthenticationProperties() { RedirectUri = returnUrl });
 		}
 
 		public IActionResult Privacy()
