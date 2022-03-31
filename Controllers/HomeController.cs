@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using RomDiscord.Models;
+using RomDiscord.Models.Pages;
+using RomDiscord.Util;
 using System.Diagnostics;
 
 namespace RomDiscord.Controllers
@@ -16,11 +18,13 @@ namespace RomDiscord.Controllers
 
 		public IActionResult Index()
 		{
+			var session = HttpContext.Session.Get<SessionData>("Data");
+			Console.WriteLine(session);
 			if (User.Identity.IsAuthenticated)
 			{
 				Console.WriteLine(User.FindFirst(c => c.Type == "username")?.Value);
 			}
-			return View();
+			return View(new BaseModel(HttpContext));
 		}
 		
 		[HttpGet]

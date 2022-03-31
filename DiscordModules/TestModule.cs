@@ -1,15 +1,74 @@
+using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 
 namespace RomDiscord.DiscordModules
 {
-	public class TestModule : ModuleBase<SocketCommandContext>
+	public class TestModule : InteractionModuleBase<SocketInteractionContext>
 	{
 
-		[Command("ping")]
-		[Alias("pong", "hello")]
+		[SlashCommand("ping", "Pings the bot")]
 		public Task PingAsync()
-			=> ReplyAsync("pong!");
+			=> Context.Interaction.RespondAsync("pong!");
 
+		// Defines the modal that will be sent.
+		public class FoodModal : IModal
+		{
+			public string Title => "Fav Food";
+			// Strings with the ModalTextInput attribute will automatically become components.
+			[InputLabel("What??")]
+			[ModalTextInput("food_name", placeholder: "Pizza", maxLength: 20)]
 
+			public string Food { get; set; }
+
+			// Additional paremeters can be specified to further customize the input.
+			[InputLabel("Why??")]
+			[ModalTextInput("food_reason", TextInputStyle.Paragraph, "Kuz it's tasty", maxLength: 500)]
+			public string Reason { get; set; }
+		}
+
+		[SlashCommand("modal", "Shows a modal")]
+		public async Task ModalAsync()
+		{
+			await RespondWithModalAsync<FoodModal>("food_menu");
+		}
+
+		[SlashCommand("test", "Test stuff")]
+		public async Task TestAsync()
+		{
+			SelectMenuBuilder smb = new SelectMenuBuilder();
+			smb.WithCustomId("Instance");
+			smb.AddOption("TTL", "TTL", "Thanatos Legend");
+			smb.AddOption("PML", "PML");
+			smb.AddOption("PMB", "PMB");
+			await RespondAsync("Yay", components: new ComponentBuilder().WithSelectMenu(smb).Build());
+		}
+		[ComponentInteraction("Instance")]
+		public async Task TestSelection(string[] selected)
+		{
+			await RespondAsync("omg " + selected[0]);
+		}
+
+		[SlashCommand("adduser", "Test")]
+		public async Task AddUser(IUser user, string bla)
+		{
+			await RespondAsync("omg " + user.Username);
+		}
+		// Responds to the modal.
+		[ModalInteraction("food_menu")]
+		public async Task ModalResponce(FoodModal modal)
+		{
+			// Build the message to send.
+			string message = "hey @everyone, I just learned " +
+				$"{Context.User.Mention}'s favorite food is " +
+				$"{modal.Food} because {modal.Reason}.";
+
+			// Specify the AllowedMentions so we don't actually ping everyone.
+			AllowedMentions mentions = new();
+			mentions.AllowedTypes = AllowedMentionTypes.Users;
+
+			// Respond to the modal.
+			await RespondAsync(message, allowedMentions: mentions, ephemeral: true);
+		}
 	}
 }
