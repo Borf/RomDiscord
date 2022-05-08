@@ -1,0 +1,44 @@
+﻿<form>
+    <h1>Weeklies</h1>
+
+    @{
+        var Weeklies = new[]
+        {
+            new { Code = "PML", Name = "Ponape Museum Legend", People = 6 },
+            new { Code = "PMB", Name = "Ponape Museum Brave", People = 6 },
+            new { Code = "ORA", Name = "Oracle", People = 6 },
+            new { Code = "TTL", Name = "Thanatos Tower Legend", People = 12 },
+            new { Code = "EC", Name = "Echoing Corridor", People = 3 },
+        };
+    }
+
+    @foreach (var w in Weeklies)
+    {
+        <h2>@w.Name</h2>
+        <div class="mb-3" form-check>
+            <input type="checkbox" class="form-check-input">
+            <label class="form-check-label">Enabled</label>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Channel</label>
+            <input type="text" class="form-control" placeholder="#weeklies">
+            <div class="form-text">The channel to put organize your PML runs in</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Roles</label>
+            <input type="text" class="form-control" placeholder="">
+            <div class="form-text">Enter a specific role here that can organize runs</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Default Remind time</label>
+            <input type="text" class="form-control" placeholder="30">
+            <div class="form-text">The default value for reminders</div>
+        </div>
+        <hr />
+    }
+
+
+
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>

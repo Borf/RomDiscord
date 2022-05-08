@@ -1,0 +1,64 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Quiz.Index;
+}
+
+<h1>Quiz!</h1>
+<div class="container border border-secondary p-3 mb-3">
+    <h2>Settings</h2>
+    <form asp-action="ChangeSettings" method="post">
+        <div class="form-group">
+            <label>Enabled</label><br/>
+            <input type="checkbox" @(Model.Settings.Enabled ? "checked" : "") class="form-check-input" name="Enabled" value="true">
+        </div>
+        <div class="form-group">
+            <label>Channel</label>
+            <select name="Channel" class="form-control custom-select">
+                <option value="0">Any</option>
+            @foreach(var channel in Model.Channels.Where(c => c is Discord.WebSocket.SocketGuildChannel).OrderBy(c => c.Position))
+            {
+                <!option @(channel.Id == Model.Settings.Channel ? "selected": "") value="@channel.Id">@channel.Name</!option>
+            }
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Can anyone start a quiz?</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="StartUser" value="Yes" checked>
+                <label class="form-check-label">Yes</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="StartUser" value="No">
+                <label class="form-check-label">No</label>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="container border border-secondary p-3 mb-3">
+    @foreach(var quiz in Model.Quizes)
+    {
+        <div class="card" style="float: left; width: 200px;">
+            <div class="card-header bg-dark text-white">@quiz.QuizName</div>
+            <div class="card-body bg-dark text-white">
+                @quiz.Questions.Count questions<br/>
+                @quiz.QuizPlays.Count plays<br/>
+                <a class="btn btn-primary" asp-action="EditQuiz" asp-route-id="@quiz.QuizId">Edit</a>
+            </div>
+        </div>
+    }
+    <div class="clearfix"></div>
+</div>
+
+
+<div class="container border border-secondary p-3">
+    <form asp-action="AddNewQuiz" method="post">
+        <h2>Add new quiz</h2>
+        <div class="form-group">
+            <label>Name</label>
+            <input class="form-control" name="Name">
+        </div>
+        <div class="form-group">
+            <label></label>
+            <input type="submit" value="Add" class="btn btn-primary form-control"/>
+        </div>
+    </form>
+</div>

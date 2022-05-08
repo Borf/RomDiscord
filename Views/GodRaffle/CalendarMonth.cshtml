@@ -1,0 +1,56 @@
+﻿@{
+    @model RomDiscord.Models.Pages.GodRaffle.CalendarMonth;
+}
+
+@{
+    var prefixDays = (((int)Model.Days[0].DayOfWeek - (int)DayOfWeek.Monday)+7)%7;
+
+    var dt = new DateTime(Model.Year, Model.Month, 1);
+    var next = dt.AddMonths(1);
+    var prev = dt.AddMonths(-1);
+
+}
+@prefixDays
+<div class="d-flex justify-content-between">
+    <div><a href="/GodRaffle/CalendarMonth/@prev.Year/@prev.Month" class="btn btn-primary">Previous</a></div>
+    <div><h2></h2>Godequip rolls for @(new DateTime(Model.Year, Model.Month, 1).ToString("MMM")) @Model.Year</h2></div>
+    <div><a href="/GodRaffle/CalendarMonth/@next.Year/@next.Month" class="btn btn-primary">Next</a></div>
+</div>
+<table class="table table-dark table-bordered">
+    <tr>
+        <td>Monday</td>
+        <td>Tuesday</td>
+        <td>Wednesday</td>
+        <td>Thursday</td>
+        <td>Friday</td>
+        <td>Saturday</td>
+        <td>Sunday</td>
+    </tr>
+    <tr>
+        @for(var i = 0; i < prefixDays; i++)
+        {
+            <td></td>
+        }
+        @foreach(var day in Model.Days)
+        {
+            bool isToday = day.Date == DateTime.Now.Day && Model.Year == DateTime.Now.Year && Model.Month == DateTime.Now.Month;
+            <td class="@(isToday ? "bg-primary" : "")">
+                @day.Date<br/>
+                <ul class="list-group" style="column-count: 2; column-gap: 10px;">
+                @foreach(var roll in day.rolls)
+                {
+                    <li class="list-group-item p-0 text-white d-flex justify-content-between align-items-center @(isToday ? "bg-primary" : "bg-dark")">
+                        <span>@roll.Name</span>
+                        <img title="@roll.GodEquip.GodEquip.Name" src="/img/GodEquip/@(Util.NameToId(roll.GodEquip.GodEquip.Name)).png" style="height: 20px; width: auto; margin-right: 10px;"/>
+                    </li>
+                }
+                </ul>
+            </td>
+            @if(day.DayOfWeek == DayOfWeek.Sunday)
+            {
+                @Html.Raw("</tr><tr>")
+            }
+        }
+    </tr>
+
+</table>

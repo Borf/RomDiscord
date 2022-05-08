@@ -1,8 +1,33 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    @model RomDiscord.Models.Pages.IndexModel;
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    @if(!User.Identity.IsAuthenticated)
+    {
+        <div class="alert alert-warning">
+            Please Login
+        </div>
+    }
+    else if(Context.SessionData().ActiveGuild == null)
+    {
+        <div class="alert alert-warning">
+            Please Select a guild
+        </div>
+    }
+    else if(!Model.BotInGuild)
+    {
+        <div class="alert alert-warning">
+            The bot is not in this guild. Please invite it using <a href="https://discord.com/api/oauth2/authorize?client_id=@Model.ClientId&permissions=1240641956944&scope=bot%20applications.commands">this link</a>
+        </div>
+    }
+    else if(Model.Guild == null)
+    {
+        <div class="alert alert-danger">
+            This guild does not have the bot enabled yet<br/>
+            <a class="btn btn-primary" asp-controller="Home" asp-action="ActivateServer">Activate</a>
+        </div>
+    }
 </div>

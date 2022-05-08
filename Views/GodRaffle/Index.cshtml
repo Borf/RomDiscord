@@ -1,0 +1,164 @@
+﻿@{
+    @model RomDiscord.Models.Pages.GodRaffle.Index;
+}
+<script>
+function changeRole(roleID, newValue)
+{
+    $.postJSON("/GodRaffle/Change/" + roleID + "/" + newValue,
+    {
+    }, function (data) {
+        alert(data);
+    });
+}
+function changeEmoji(roleID, newValue)
+{
+    $.postJSON("/GodRaffle/ChangeEmo/" + roleID + "/" + newValue,
+    {
+    }, function (data) {
+        alert(data);
+    });
+}
+</script>
+
+<h1>God Equipment Raffle</h1>
+<div class="container border border-secondary p-3 mb-3">
+    <h2>Settings</h2>
+    <form asp-action="ChangeSettings" method="post">
+        <div class="form-group">
+            <label>Enabled</label><br/>
+            <input type="checkbox" @(Model.Settings.Enabled ? "checked" : "") class="" name="Enabled" value="true">
+        </div>
+        <div class="form-group">
+            <label>Channel</label>
+            <select name="Channel" class="form-control custom-select">
+            @foreach(var channel in Model.Channels.Where(c => c is Discord.WebSocket.SocketGuildChannel).OrderBy(c => c.Position))
+            {
+                <!option @(channel.Id == Model.Settings.Channel ? "selected": "") value="@channel.Id">@channel.Name</!option>
+            }
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Days Enabled</label>
+            <select name="DaysEnabled" class="form-control custom-select" multiple size="7">
+                <!option @(Model.Settings.DaysEnabled.Contains(0) ? "selected": "") value="0">Monday</!option>
+                <!option @(Model.Settings.DaysEnabled.Contains(1) ? "selected": "") value="1">Tuesday</!option>
+                <!option @(Model.Settings.DaysEnabled.Contains(2) ? "selected": "") value="2">Wednesday</!option>
+                <!option @(Model.Settings.DaysEnabled.Contains(3) ? "selected": "") value="3">Thursday</!option>
+                <!option @(Model.Settings.DaysEnabled.Contains(4) ? "selected": "") value="4">Friday</!option>
+                <!option @(Model.Settings.DaysEnabled.Contains(5) ? "selected": "") value="5">Saturday</!option>
+                <!option @(Model.Settings.DaysEnabled.Contains(6) ? "selected": "") value="6">Sunday</!option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Time Factor</label>
+            <input type="number" min="1" max="20" class="form-control" name="TimeFactor" value="@Model.Settings.TimeFactor">
+        </div>
+        <div class="form-group">
+            <label>Max Time Factor</label>
+            <input type="number" min="1" max="20" class="form-control" name="MaxTimeFactor" value="@Model.Settings.MaxTimeFactor">
+        </div>
+        <div class="form-group">
+            <label>Guild Member Role</label>
+            <select name="GuildMemberRole" class="form-control custom-select">
+                <!option value="0">-</!option>
+                @foreach(var role in Model.Roles)
+                {
+                    <!option @(role.Id == Model.Settings.GuildMemberRole ? "selected": "") value="@role.Id">@role.Name</!option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Extra Roll Role</label>
+            <select name="DonateRole" class="form-control custom-select">
+                <!option value="0">-</!option>
+                @foreach(var role in Model.Roles)
+                {
+                    <!option @(role.Id == Model.Settings.DonateRole ? "selected": "") value="@role.Id">@role.Name</!option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Save</label>
+            <input class="btn btn-primary form-control" type="submit" value="Save" />
+        </div>
+
+    </form>
+</div>
+<div class="container border border-secondary p-3 mb-3">
+<form>
+    <h2>God equips in the guild</h2>
+    <ul class="list-group">
+        <li class="list-group-item bg-primary text-white">
+            <div class="row">
+                <div class="col">Equip</div>
+                <div class="col-sm">Level</div>
+                <div class="col-sm">Amount in guild</div>
+                <div class="col-sm">Role</div>
+                <div class="col-sm">Emoji</div>
+                <div class="col-sm">Modify</div>
+            </div>
+        </li>
+        @foreach(var ge in Model.GodEquipGuild)
+        {
+            <li class="list-group-item bg-dark text-white">
+                <div class="row">
+                    <div class="col">@ge.GodEquip.Name</div>
+                    <div class="col-sm">@ge.Level</div>
+                    <div class="col-sm">
+                        @for(int i = 0; i < ge.Amount; i++)
+                            {
+                                <img src="/img/GodEquip/@(Util.NameToId(ge.GodEquip.Name)).png" style="height: 50px; width: auto; margin-right: 10px;"/>
+                            }
+                        </div>
+                    <div class="col-sm">
+                        <select onchange="changeRole(@ge.GodEquipGuildBindingId, this.value)" class="form-control custom-select">
+                            @foreach(var role in Model.Roles)
+                            {
+                                <!option @(role.Id == ge.DiscordRoleId ? "selected": "") value="@role.Id">@role.Name</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm">
+                        <input value="@ge.Emoji" class="form-control" onchange="changeEmoji(@ge.GodEquipGuildBindingId, this.value)">
+                    </div>
+                    <div class="col-sm">
+                        <div class="btn-group">
+                            <a href="#" class="btn btn-success">+</a>
+                            <a href="#" class="btn btn-danger">-</a></div>
+                        </div>
+                </div>
+            </li>
+        }
+    </ul>
+</form>
+</div>
+<div class="container border border-secondary p-3">
+    <form asp-action="AddNew" method="post">
+        <h2>Add new equipment</h2>
+        <div class="form-group">
+            <label>Equipment</label>
+            <select name="GodEquip" class="form-control custom-select">
+              @foreach(var ge in Model.GodEquip)
+              {
+                <option value="@ge.GodEquipId">@ge.Name</option>
+              }
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Level</label>
+            <input type="number" min="1" max="3" class="form-control" name="Level" value="1">
+        </div>
+        <div class="form-group">
+            <label>Amount</label>
+            <input type="amount" min="1" max="10" class="form-control" name="Amount" value="1">
+        </div>
+        <div class="form-group">
+            <label>Role</label>
+            <input class="form-control" name="Role" placeholder="DiscordRole">
+        </div>
+        <div class="form-group">
+            <label></label>
+            <input type="submit" value="Add" class="btn btn-primary form-control"/>
+        </div>
+    </form>
+</div>

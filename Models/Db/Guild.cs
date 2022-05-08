@@ -1,10 +1,14 @@
-﻿namespace RomDiscord.Models.Db
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace RomDiscord.Models.Db
 {
 	public class Guild
 	{
+		[Key]
 		public int GuildId { get; set; }
 		public string GuildName { get; set; }
-		public User GuildOwner { get; set; }
+		public ulong DiscordGuildId { get; set; }
 		public List<AccessLevel> AccessLevels { get; set; }
+		public List<User> Users { get; set; }
 	}
 }

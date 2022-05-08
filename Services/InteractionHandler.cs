@@ -38,15 +38,20 @@ namespace RomDiscord.Services
 		}
 
 
-		private async Task Log(LogMessage log)
-			=> Console.WriteLine(log);
+		private Task Log(LogMessage log)
+		{
+			Console.WriteLine(log);
+			return Task.CompletedTask;
+		}
 
 		private async Task ReadyAsync()
 		{
 			// Context & Slash commands can be automatically registered, but this process needs to happen after the client enters the READY state.
 			// Since Global Commands take around 1 hour to register, we should use a test guild to instantly update and test our commands.
 			//if (Program.IsDebug())
-				await _handler.RegisterCommandsToGuildAsync(724054882717532171, true);
+				//await _handler.RegisterCommandsToGuildAsync(724054882717532171, true);
+			await _handler.RegisterCommandsToGuildAsync(819438757663997992, true); //lumi
+			
 			//else
 			//	await _handler.RegisterCommandsGloballyAsync(true);
 		}
@@ -66,6 +71,10 @@ namespace RomDiscord.Services
 					{
 						case InteractionCommandError.UnmetPrecondition:
 							// implement
+							break;
+						case InteractionCommandError.Exception:
+							Console.WriteLine(result.ErrorReason);
+							Console.WriteLine(((Discord.Interactions.ExecuteResult)result).Exception);
 							break;
 						default:
 							break;
