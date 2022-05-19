@@ -1,3 +1,4 @@
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ namespace RomDiscord.DiscordModules
 			this.services = services;
 		}
 
+		[RequireUserPermission(GuildPermission.Administrator)]
 		[SlashCommand("godequipraffle", "Rolls the raffle bot")]
 		public async Task GodEquipRaffleAsync(
 			[Summary(description: "Date of monday next week")] int startDay = -1, 
@@ -34,10 +36,11 @@ namespace RomDiscord.DiscordModules
 			//await ReplyAsync("Done the weekly raffle");
 		}
 
+		[RequireUserPermission(GuildPermission.Administrator)]
 		[SlashCommand("godequipraffleperday", "Shows a post per day")]
 		public async Task GodEquipPerDayAsync([Summary(description: "Date of monday next week")] bool emoji = true)
 		{
-			await DeferAsync(true);
+			await DeferAsync(false);
 			using var scope = services.CreateScope();
 			var raffler = scope.ServiceProvider.GetRequiredService<GodEquipRaffle>();
 			var embed = await raffler.BuildEmbed(DateTime.Now.Date, this.Context.Guild, emoji);
@@ -49,8 +52,10 @@ namespace RomDiscord.DiscordModules
 
 		public static List<RomDiscord.Services.TaskScheduler.ScheduledTask> GetTasks()
 		{
-			DateTime nextSunday = DateTime.Now.AddDays(7 - (int)DateTime.Now.DayOfWeek).Date;
+			DateTime nextSunday = DateTime.Now.AddDays((7 - (int)DateTime.Now.DayOfWeek) % 7).Date;
 			nextSunday = nextSunday.AddHours(17);
+			if (nextSunday < DateTime.Now)
+				nextSunday = nextSunday.AddDays(7);
 
 			return new List<RomDiscord.Services.TaskScheduler.ScheduledTask>()
 			{
@@ -74,8 +79,7 @@ namespace RomDiscord.DiscordModules
 								var dcGuild = discord.Guilds.First(g => g.Id == guild.DiscordGuildId);
 								await godRaffle.RaffleWeek(nextWeek, dcGuild);
 								var channel = dcGuild.TextChannels.First(c => c.Id == moduleSettings.GetUlong(guild, "godraffle", "channel"));
-								channel.SendMessageAsync(null, false, await godRaffle.BuildEmbed(nextWeek, dcGuild, moduleSettings.GetBool(guild, "godraffle", "emoji", true)));
-
+								await channel.SendMessageAsync(null, false, await godRaffle.BuildEmbed(nextWeek, dcGuild, moduleSettings.GetBool(guild, "godraffle", "emoji", true)));
 							}
 						}                   
 					}

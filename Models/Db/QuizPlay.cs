@@ -7,6 +7,9 @@ namespace RomDiscord.Models.Db
 		[Key]
 		public int QuizPlayId { get; set; }
 
-		public Quiz Quiz { get; set; }
+		public DateTime DateTime { get; set; }
+		public Guild Guild { get; set; } = null!;
+		public string Channel { get; set; } = "";
+		public List<QuizPlayRound> Rounds { get; set; } = null!;
 	}
 }

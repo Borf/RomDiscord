@@ -5,10 +5,10 @@ namespace RomDiscord.Models.Pages.GodRaffle
 {
 	public class Index
 	{
-		public List<GodEquip> GodEquip { get; set; }
-		public List<GodEquipGuildBinding> GodEquipGuild { get; set; }
-		public IReadOnlyCollection<SocketRole> Roles { get; set; }
-		public SettingsModel Settings { get; internal set; }
-		public IReadOnlyCollection<SocketGuildChannel> Channels { get; set; }
+		public List<GodEquip> GodEquip { get; set; } = new List<GodEquip>();
+		public List<GodEquipGuildBinding> GodEquipGuild { get; set; } = new List<GodEquipGuildBinding>();
+		public IReadOnlyCollection<SocketRole> Roles { get; set; } = null!;
+		public SettingsModel Settings { get; internal set; } = null!;
+		public IReadOnlyCollection<SocketGuildChannel> Channels { get; set; } = null!;
 	}
 }

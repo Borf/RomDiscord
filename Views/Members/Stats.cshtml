@@ -1,0 +1,20 @@
+﻿@{
+    @model List<RomDiscord.Models.Db.Member>
+    @using RomDiscord.Models.Db;
+
+    var lookup = Enum.GetValues<Job>().ToDictionary(keySelector: j => j, elementSelector: j => 0);
+    foreach(var m in Model)
+        foreach (var c in m.JobList)
+            lookup[c]++;
+    var max = lookup.Max(kv => kv.Value);
+}
+
+<ul class="list-group">
+    @foreach(var c in Enum.GetValues<Job>().OrderByDescending(c => lookup[c]))
+    {
+        <li class="list-group-item bg-dark text-white" style="background-image: url('/img/Jobs/@(c).png'); background-size: 30px 30px; background-repeat: no-repeat; height: 30px; padding-left: 50px; line-height: 30px">
+            <span style="display: inline-block; width: 200px;">@c.Name()</span>
+            <progress max="@max" value="@Model.Count(m => m.JobList.Contains(c))" style="height: 30px; margin-right: 20px; float: right"></progress>@Model.Count(m => m.JobList.Contains(c))
+        </li>
+    }
+</ul>

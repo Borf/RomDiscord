@@ -1,0 +1,183 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Party.Index
+}
+
+<style>
+    .memberlist li, #tmpdropper li
+    {
+        display: block;
+        float: left;
+        width: 150px;
+        margin-right: 20px;
+    }
+</style>
+
+<script>
+    !function(a){function f(a,b){if(!(a.originalEvent.touches.length>1)){a.preventDefault();var c=a.originalEvent.changedTouches[0],d=document.createEvent("MouseEvents");d.initMouseEvent(b,!0,!0,window,1,c.screenX,c.screenY,c.clientX,c.clientY,!1,!1,!1,!1,0,null),a.target.dispatchEvent(d)}}if(a.support.touch="ontouchend"in document,a.support.touch){var e,b=a.ui.mouse.prototype,c=b._mouseInit,d=b._mouseDestroy;b._touchStart=function(a){var b=this;!e&&b._mouseCapture(a.originalEvent.changedTouches[0])&&(e=!0,b._touchMoved=!1,f(a,"mouseover"),f(a,"mousemove"),f(a,"mousedown"))},b._touchMove=function(a){e&&(this._touchMoved=!0,f(a,"mousemove"))},b._touchEnd=function(a){e&&(f(a,"mouseup"),f(a,"mouseout"),this._touchMoved||f(a,"click"),e=!1)},b._mouseInit=function(){var b=this;b.element.bind({touchstart:a.proxy(b,"_touchStart"),touchmove:a.proxy(b,"_touchMove"),touchend:a.proxy(b,"_touchEnd")}),c.call(b)},b._mouseDestroy=function(){var b=this;b.element.unbind({touchstart:a.proxy(b,"_touchStart"),touchmove:a.proxy(b,"_touchMove"),touchend:a.proxy(b,"_touchEnd")}),d.call(b)}}}(jQuery);
+    var ws;
+    $(function()
+    {
+        ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/party/ws");
+        ws.onmessage = handlepacket
+        ws.onerror = function(e) { alert("Error: " + e); console.log(e); }
+        addDraggable($(".member"));
+        $(".party").droppable({
+            greedy: true,
+            drop:function(event, ui)
+            {
+                var target = $(event.target).find("ul");
+                $(event.target).find("ul").append($(ui.draggable).detach().css({'top':'', 'left':''}));
+                ws.send(JSON.stringify(
+                    {
+                        "Action" : "Move", 
+                        "Member" : parseInt($(ui.draggable).attr("MemberId")),
+                        "Party" : parseInt($(event.target).attr("PartyId")),
+                    }));
+            }
+        });
+
+        $("body").droppable({
+            drop: function(event, ui)
+            {
+                $(".memberlist").append($(ui.draggable).detach().css({'top':'', 'left':''}));
+                ws.send(JSON.stringify(
+                    {
+                        "Action" : "Move", 
+                        "Member" : parseInt($(ui.draggable).attr("MemberId")),
+                        "Party" : 0,
+                    }));
+            }
+        })
+    });
+
+    function handlepacket(event)
+    {
+        console.log("Got message: " + event.data);
+        var data = JSON.parse(event.data);
+        switch(data.Action)
+        {
+            case "Move":
+                moveMember(data.Member, data.Party);
+                break;
+        }
+
+    }
+
+
+    function addDraggable(el)
+    {
+        el.draggable({
+    //      containment: '#parties',
+    //      stack: '#parties li',
+            zIndex: 10,
+            cursor: 'move',
+            revert: true,
+            start: function(event, ui)
+            {
+                $(".memberlist").slideUp();
+                $(event.target).removeClass("bg-dark");
+                $(event.target).addClass("bg-primary");
+            },
+            stop: function(event, ui)
+            {
+                $(event.target).addClass("bg-dark");
+                $(event.target).removeClass("bg-primary");
+                event.target.style.zIndex = "";
+                event.target.style.left = "";
+                event.target.style.top = "";
+            }
+        });
+    }
+
+    function moveMember(memberId, partyId)
+    {
+        var src = $("li[memberid="+memberId+"]");
+        var target = $("div[partyid="+partyId+"]").find("li:last");
+        if(partyId == 0)
+            target = $(".memberlist li:last")
+
+        var x = target.offset().left - src.offset().left;
+        var y = target.offset().top - src.offset().top + target.height();
+
+        src.each(function(index)
+        {
+            $(this).css("zIndex", 10);
+            $(this).removeClass("bg-dark");
+            $(this).addClass("bg-primary");
+            $(this).animate({
+                left: x,
+                top: y
+            }, function()
+            {
+                $(this).css("zIndex", 0);
+                $(this).addClass("bg-dark");
+                $(this).removeClass("bg-primary");
+                $(target).parent().append($(this).detach().css({'top':'', 'left':''}));
+
+            })
+        })
+
+    }
+    function addParty()
+    {
+        ws.send(JSON.stringify({"Action" : "NewParty", "Name" : $("#newPartyName").val()}));
+    }
+    function changepartyname(id)
+    {
+        ws.send(JSON.stringify({"Action" : "PartyName", "Party" : id, "Name" : $("div[partyid="+id+"] input.name").val()}));
+    }
+    function openMembers()
+    {
+        $(".memberlist").slideToggle();
+    }
+</script>
+
+<div class="input-group m-2">
+<input id="newPartyName" class="form-control" value="New Party"/><button type="button" class="btn btn-primary" onclick="addParty()">Add Party</button>
+</div>
+<input type="button" class="form-control btn-primary btn m-2" value="Members" onclick="openMembers()"/>
+<ul class="memberlist" style="display: none">
+    @foreach(var member in Model.Members.Where(m => m.PartyId == null).OrderBy(m => m.Name.ToLower()))
+    {
+        <li MemberId="@member.MemberId" class="list-group-item bg-dark text-white member">@member.Name               
+            @foreach(var job in member.JobList)
+            {
+                <img src="/img/Jobs/@(job).png" style="height: 22px; float: right;">
+            }
+        </li>
+    }
+</ul>
+<div style="clear: both"></div>
+<div id="parties">
+@foreach(var party in Model.Parties)
+{
+    <div PartyId="@party.PartyId" class="card border m-2 bg-dark party" style="float: left; height: 290px; width: 200px;">
+        <div class="card-header py-1 bg-secondary"><input onkeyup="changepartyname(@party.PartyId)" onchange="changepartyname(@party.PartyId)" value="@party.Name" style="width: 100px" class="bg-secondary text-white name"/><span style="float: right;" class="badge bg-primary">MVP</span></div>
+        <ul class="list-group list-group-flush">
+            @foreach(var member in party.Members)
+            {
+                <li MemberId="@member.MemberId" class="list-group-item bg-dark text-white member">@member.Name
+                @foreach(var job in member.JobList)
+                {
+                    <img src="/img/Jobs/@(job).png" style="height: 22px; float: right;">
+                }
+                </li>
+            }
+        </ul>
+    </div>
+}
+    <div style="clear: both"></div>
+</div>
+<br/>
+<form method="post" asp-action="Publish">
+<div class="input-group">
+    <label style="margin-right: 10px; line-height: 25px;">Publish to discord channel</label>
+    <select name="Channel" class="form-control custom-select">
+    @foreach(var channel in Model.Channels.Where(c => c is Discord.WebSocket.SocketGuildChannel).OrderBy(c => c.Position))
+    {
+        <!option @(channel.Id == Model.ActiveChannel ? "selected": "") value="@channel.Id">@channel.Name</!option>
+    }
+    </select>
+    <input class="btn btn-primary" type="submit" class="form-control" value="Post"/>
+</div>
+</form>

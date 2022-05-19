@@ -9,6 +9,6 @@ namespace RomDiscord.Models.Pages
 	{
 		public Guild? Guild { get; set; } = null;
 		public bool BotInGuild { get; set; } = false;
-		public string ClientId { get; internal set; }
+		public string ClientId { get; set; } = "";
 	}
 }

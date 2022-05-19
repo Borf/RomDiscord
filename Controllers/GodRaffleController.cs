@@ -26,7 +26,7 @@ namespace RomDiscord.Controllers
 
 		public async Task<IActionResult> Index()
 		{
-			ulong guildId = HttpContext.SessionData().ActiveGuild.Id;
+			ulong guildId = HttpContext.SessionData().ActiveGuild?.Id ?? 0;
 			var model = new RomDiscord.Models.Pages.GodRaffle.Index()
 			{
 				GodEquip = await context.GodEquips.ToListAsync(),
@@ -64,12 +64,12 @@ namespace RomDiscord.Controllers
 				{ 
 					Date = i, 
 					DayOfWeek = new DateTime(year, month, i).DayOfWeek,
-					rolls = context.GodEquipRolls
+					rolls = await context.GodEquipRolls
 						.Include(r => r.GodEquip.Guild)
 						.Include(r => r.GodEquip.GodEquip)
 						.Where(r => r.GodEquip.Guild.DiscordGuildId == session.ActiveGuild.Id)
 						.Where(r => r.Date == new DateOnly(year, month, i))
-						.ToList()
+						.ToListAsync()
 				});
 			}
 			var model = new RomDiscord.Models.Pages.GodRaffle.CalendarMonth()
@@ -110,12 +110,12 @@ namespace RomDiscord.Controllers
 				{
 					Date = currentDay,
 					DayOfWeek = (DayOfWeek)i,
-					rolls = context.GodEquipRolls
+					rolls = await context.GodEquipRolls
 						.Include(r => r.GodEquip.Guild)
 						.Include(r => r.GodEquip.GodEquip)
 						.Where(r => r.GodEquip.Guild.DiscordGuildId == session.ActiveGuild.Id)
 						.Where(r => r.Date == DateOnly.FromDateTime(currentDay))
-						.ToList()
+						.ToListAsync()
 				});
 				currentDay = currentDay.AddDays(1);
 			}
@@ -132,24 +132,28 @@ namespace RomDiscord.Controllers
 		[HttpPost("AddNew")]
 		public async Task<IActionResult> AddNew([FromForm]AddNewModel data)
 		{
-			var guild = context.Guilds.First(g => g.DiscordGuildId == HttpContext.SessionData().ActiveGuild.Id);
+			var guild = this.Guild(context);
+			if (guild == null)
+				return RedirectToAction("Index", "Home");
 			context.GodEquipGuild.Add(new GodEquipGuildBinding()
 			{
-				GodEquip = context.GodEquips.FirstOrDefault(g => g.GodEquipId == data.GodEquip),
+				GodEquip = await context.GodEquips.FirstAsync(g => g.GodEquipId == data.GodEquip),
 				Amount = data.Amount,
 				Level = data.Level,
 				DiscordRoleId = data.Role,
-				Guild = guild
-			});
+				Guild = guild,
+				Emoji = "",
+			}) ;
 			await context.SaveChangesAsync();
 			return Redirect(Request.Headers["Referer"]);
 		}
 		[HttpPost("ChangeSettings")]
 		public async Task<IActionResult> ChangeSettings([FromForm]SettingsModel data)
 		{
-			if (HttpContext.SessionData() == null || HttpContext.SessionData().ActiveGuild == null)
-				return Problem("Session wrong");
-			var guild = context.Guilds.First(g => g.DiscordGuildId == HttpContext.SessionData().ActiveGuild.Id);
+			var guild = this.Guild(context);
+			if (guild == null)
+				return RedirectToAction("Index", "Home");
+
 			await moduleSettings.Set(guild, "godraffle", "enabled", data.Enabled + "");
 			await moduleSettings.Set(guild, "godraffle", "timefactor", data.TimeFactor + "");
 			await moduleSettings.Set(guild, "godraffle", "maxtimefactor", data.MaxTimeFactor + "");
@@ -157,6 +161,7 @@ namespace RomDiscord.Controllers
 			await moduleSettings.Set(guild, "godraffle", "donaterole", data.DonateRole + "");
 			await moduleSettings.Set(guild, "godraffle", "channel", data.Channel + "");
 			await moduleSettings.Set(guild, "godraffle", "daysenabled", string.Join(",", data.DaysEnabled));
+			await moduleSettings.Set(guild, "godraffle", "rolllengths", string.Join(",", data.RollLengths));
 			return Redirect(Request.Headers["Referer"]);
 		}
 

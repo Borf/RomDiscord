@@ -12,7 +12,9 @@ using RomDiscord.Models.Db;
 using RomDiscord.Services;
 using RomDiscord.Util;
 using ServiceStack.Script;
+using System.Net;
 using System.Net.Http.Headers;
+using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -38,7 +40,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 DiscordSocketConfig _socketConfig = new()
 {
-	GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers,
+	GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers) 
+		& ~GatewayIntents.GuildScheduledEvents
+		& ~GatewayIntents.GuildInvites,
 	AlwaysDownloadUsers = true,
 //	LogLevel = LogSeverity.Debug
 };
@@ -127,9 +131,11 @@ using (var context = scope.ServiceProvider.GetRequiredService<Context>())
 
 
 
+var taskScheduler = app.Services.GetServices<IHostedService>().First(s => (s as RomDiscord.Services.TaskScheduler) != null) as RomDiscord.Services.TaskScheduler;
+if(taskScheduler != null)
+	await taskScheduler.InitializeAsync();
 
-await (app.Services.GetServices<IHostedService>().First(s => (s as RomDiscord.Services.TaskScheduler) != null) as RomDiscord.Services.TaskScheduler).InitializeAsync();
-
+app.UseWebSockets();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -144,7 +150,6 @@ app.UseCookiePolicy(new CookiePolicyOptions()
 	MinimumSameSitePolicy = SameSiteMode.Lax
 });
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -186,13 +191,13 @@ void OAuthHandler(OAuthOptions options)
 			{
 				if ((guild.GetProperty("permissions").GetInt32() & ((int)DiscordGuildPermissions.ADMINISTRATOR)) != 0)
 				{
-					var guildId = ulong.Parse(guild.GetProperty("id").GetString());
+					var guildId = ulong.Parse(guild.GetProperty("id").GetString() ?? "0");
 
 					sessionData.Guilds.Add(new SessionData.SessionGuild()
 					{
 						Id = guildId,
-						Name = guild.GetProperty("name").GetString(),
-						Icon = guild.GetProperty("icon").GetString(),
+						Name = guild.GetProperty("name").GetString() ?? "",
+						Icon = guild.GetProperty("icon").GetString() ?? "",
 					});
 				}
 			}
@@ -200,12 +205,12 @@ void OAuthHandler(OAuthOptions options)
 
 			using var scope = app.Services.CreateScope();
 			using var db = scope.ServiceProvider.GetRequiredService<Context>();
-			var u = db.Users.FirstOrDefault(u => u.DiscordUserId == ulong.Parse(user.GetProperty("user").GetProperty("id").GetString()));
+			var u = db.Users.FirstOrDefault(u => u.DiscordUserId == ulong.Parse(user.GetProperty("user").GetProperty("id").GetString() ?? "0"));
 			if(u == null)
 			{
 				db.Users.Add(new User()
 				{
-					DiscordUserId = ulong.Parse(user.GetProperty("user").GetProperty("id").GetString()),
+					DiscordUserId = ulong.Parse(user.GetProperty("user").GetProperty("id").GetString() ?? "0"),
 					UserName = user.GetProperty("user").GetProperty("username").GetString() + "#" + user.GetProperty("user").GetProperty("discriminator").GetString()
 				});
 				db.SaveChanges();
@@ -233,7 +238,9 @@ async Task<JsonElement> getApi(string endPoint, OAuthCreatingTicketContext conte
 	return await response.Content.ReadFromJsonAsync<JsonElement>();
 }
 
+
 public partial class Program
 {
-	private static WebApplication? app;
+	private static WebApplication app = null!;
+	public static List<WebSocket> sockets = new List<WebSocket>();
 }

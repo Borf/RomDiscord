@@ -1,0 +1,70 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Attendance.RecordModel
+}
+<style>
+    #memberButtons input[type="checkbox"]
+    {
+        visibility: hidden;
+        width: 0px;
+    }
+</style>
+<script>
+    function toggle(src)
+    {
+        var el = $(src);
+        var check = el.find("input");
+
+        check[0].checked = !check[0].checked;
+
+        el.toggleClass("bg-danger");
+        el.toggleClass("bg-success");
+        if(el.hasClass("btn-disabled"))
+            el.attr("name", "membersDisabled");
+        else
+            el.attr("name", "members");
+    }
+    function importValues()
+    {
+        var lines = $("#importArea").val();
+        lines = lines.split("\n");
+        var notFound = [];
+        for(var i in lines)
+        {
+            var name = lines[i];
+            var el = $("#memberButtons span");
+            var done = false;
+            el.each((i, f) =>
+            {
+                if($(f).text().toLowerCase() == name.toLowerCase())
+                {
+                    $(f).find("input")[0].checked = true;
+                    $(f).removeClass("bg-danger");
+                    $(f).addClass("bg-success");
+                    done = true;
+                }
+            });
+
+            if(!done)
+                notFound.push(name);
+        }
+        if(notFound.length > 0)
+            alert("Could not find " + notFound);
+    }
+
+</script>
+
+<form method="post" asp-action="Record" asp-route-year="@Model.Year" asp-route-month="@Model.Month" asp-route-day="@Model.Day">
+    <div id="memberButtons">
+        @foreach(var member in Model.AllMembers.OrderBy(o => o.Name.ToLower()))
+        {
+            <span class="btn m-1 @(Model.Members.Contains(member) ? "bg-success" : "bg-danger") text-white" onclick="toggle(this)"><input type="checkbox" name="members" value="@member.MemberId" @(Model.Members.Contains(member) ? "checked" : "")>@member.Name</span>
+        }
+    </div>
+    <input type="submit" class="btn btn-primary form-control my-3" value="Save" />
+</form>
+<h2>Import copy/paste list (one name per line)</h2>
+<textarea id="importArea" class="form-control" rows="8">borf
+purrfection
+mars
+minnegard</textarea>
+<input type="button" onclick="importValues()" value="import" class="btn btn-primary form-control"/>

@@ -19,12 +19,12 @@ namespace RomDiscord.DiscordModules
 			[InputLabel("What??")]
 			[ModalTextInput("food_name", placeholder: "Pizza", maxLength: 20)]
 
-			public string Food { get; set; }
+			public string Food { get; set; } = null!;
 
 			// Additional paremeters can be specified to further customize the input.
 			[InputLabel("Why??")]
 			[ModalTextInput("food_reason", TextInputStyle.Paragraph, "Kuz it's tasty", maxLength: 500)]
-			public string Reason { get; set; }
+			public string Reason { get; set; } = null!;
 		}
 
 		[SlashCommand("modal", "Shows a modal")]

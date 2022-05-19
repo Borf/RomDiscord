@@ -9,6 +9,6 @@ namespace RomDiscord.Models.Db
 		public string QuizName { get; set; } = "";
 		public List<QuizQuestion> Questions { get; set; } = new List<QuizQuestion>();
 		public List<QuizPlay> QuizPlays { get; set; } = new List<QuizPlay>();
-		public User Owner { get; set; }
+		public User Owner { get; set; } = null!;
 	}
 }

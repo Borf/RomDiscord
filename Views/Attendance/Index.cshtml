@@ -1,0 +1,54 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Attendance.Index;
+}
+
+@{
+    var dt = new DateTime(Model.Year, Model.Month, 1);
+    var prefixDays = (((int)dt.DayOfWeek - (int)DayOfWeek.Monday)+7)%7;
+    var next = dt.AddMonths(1);
+    var prev = dt.AddMonths(-1);
+    var daysInMonth = DateTime.DaysInMonth(Model.Year, Model.Month);
+
+}
+<div class="d-flex justify-content-between">
+    <div><a href="/Attendance/@prev.Year/@prev.Month" class="btn btn-primary">Previous</a></div>
+    <div><h2></h2>Attendance for @(new DateTime(Model.Year, Model.Month, 1).ToString("MMM")) @Model.Year</h2></div>
+    <div><a href="/Attendance/@next.Year/@next.Month" class="btn btn-primary">Next</a></div>
+</div>
+<table class="table table-dark table-bordered">
+    <tr>
+        <td>Monday</td>
+        <td>Tuesday</td>
+        <td>Wednesday</td>
+        <td>Thursday</td>
+        <td>Friday</td>
+        <td>Saturday</td>
+        <td>Sunday</td>
+    </tr>
+    <tr>
+        @for(var i = 0; i < prefixDays; i++)
+        {
+            <td></td>
+        }
+        @for(int day = 1; day <= daysInMonth; day++)
+        {
+            DateTime date = new DateTime(Model.Year, Model.Month, day);
+            RomDiscord.Models.Db.Attendance? attendance = null;
+            bool isToday = date.Date == DateTime.Now.Date;
+            <td class="@(isToday ? "bg-primary" : "")">
+                <h2>@date.Date.Day</h2>
+                @if(Model.Attendance.TryGetValue(day, out attendance))
+                {
+                    <span>Attendance: @attendance.Members.Count</span>
+                }
+                <br/>
+                <a asp-action="Record" asp-route-year="@Model.Year" asp-route-month="@Model.Month" asp-route-day="@day" class="btn-@(attendance == null ? "secondary" : "success") btn">@(attendance == null ? "Record" : "View/Edit")</a>
+            </td>
+            @if (date.DayOfWeek == DayOfWeek.Sunday)
+            {
+                @Html.Raw("</tr><tr>")
+            }
+        }
+    </tr>
+
+</table>

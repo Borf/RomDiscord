@@ -2,22 +2,28 @@
 
 namespace RomDiscord.Models.Db
 {
-	public class Context : DbContext
-	{
-        public DbSet<Guild> Guilds { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Role> Roles { get; set; }
-        public DbSet<AccessLevel> AccessLevels { get; set; }
-        public DbSet<ModuleSetting> ModuleSettings { get; set; }
+    public class Context : DbContext
+    {
+        public DbSet<Guild> Guilds => Set<Guild>();
+        public DbSet<User> Users => Set<User>();
+        public DbSet<Role> Roles => Set<Role>();
+        public DbSet<AccessLevel> AccessLevels => Set<AccessLevel>();
+        public DbSet<ModuleSetting> ModuleSettings => Set<ModuleSetting>();
         //godequip
-        public DbSet<GodEquip> GodEquips { get; set; }
-        public DbSet<GodEquipGuildBinding> GodEquipGuild { get; set; }
-        public DbSet<GodEquipRoll> GodEquipRolls { get; set; }
+        public DbSet<GodEquip> GodEquips => Set<GodEquip>();
+        public DbSet<GodEquipGuildBinding> GodEquipGuild => Set<GodEquipGuildBinding>();
+        public DbSet<GodEquipRoll> GodEquipRolls => Set<GodEquipRoll>();
         //quiz
-        public DbSet<Quiz> Quizes { get; set; }
-        public DbSet<QuizQuestion> QuizQuestions{ get; set; }
-        public DbSet<QuizPlay> QuizPlays { get; set; }
-        public DbSet<QuizPlayPlayerScore> QuizPlayScores { get; set; }
+        public DbSet<Quiz> Quizes => Set<Quiz>();
+        public DbSet<QuizQuestion> QuizQuestions => Set<QuizQuestion>();
+        public DbSet<QuizPlay> QuizPlays => Set<QuizPlay>();
+        public DbSet<QuizPlayPlayerScore> QuizPlayScores => Set<QuizPlayPlayerScore>();
+        public DbSet<QuizPlayRound> QuizPlayRounds => Set<QuizPlayRound>();
+        public DbSet<QuizPlayRoundQuiz> QuizPlayRoundQuizzes => Set<QuizPlayRoundQuiz>();
+        public DbSet<Member> Members => Set<Member>();
+        public DbSet<Party> Parties => Set<Party>();
+        public DbSet<Attendance> Attendance => Set<Attendance>();
+        public DbSet<AttendanceMember> AttendanceMembers => Set<AttendanceMember>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

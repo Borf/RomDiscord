@@ -1,0 +1,51 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Members.EditModel;
+    @using RomDiscord.Util;
+    @using RomDiscord.Models.Db;
+}
+
+<form asp-action="Update" asp-route-id="@Model.Member.MemberId" method="post">
+    <div class="form-group">
+        <label>Name</label>
+        <input class="form-control" name="Name" value="@Model.Member.Name">
+    </div>
+    <div class="form-group">
+        <label>Discord name</label>
+        <select name="DiscordId" class="form-control">
+            <option value="0">-</option>
+            @foreach(var u in Model.DiscordMembers.OrderBy(u => u.DisplayName))
+            {
+                <!option @(Model.Member.DiscordId == u.Id ? "selected":"") value="@u.Id">@u.DisplayName | @u.Username#@u.Discriminator</!option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Discord name</label>
+        <select multiple name="Jobs" size="@(Enum.GetValues<Job>().Length)" class="form-control">
+            @foreach(var c in Enum.GetValues<Job>())
+            {
+                <!option @(Model.Member.JobList.Contains(c) ? "selected":"") value="@c" style="height: 20px; background-repeat: no-repeat; background-size: 20px 20px; padding-left: 30px; background-image: url('/img/Jobs/@(c).png')">@c.Name()</!option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Short notes (enter-seperated)</label>
+        <textarea class="form-control" name="ShortNote">@Model.Member.ShortNote</textarea>
+    </div>
+    <div class="form-group">
+        <label>Long note</label>
+        <textarea class="form-control" name="LongNote">@Model.Member.LongNote</textarea>
+    </div>
+    <div class="form-group">
+        <label>Join Date</label>
+        <input type="date" class="form-control" name="JoinDate" value="@Model.Member.JoinDate" />
+    </div>
+    <div class="form-group">
+        <label></label>
+        <input type="submit" value="Update" class="btn btn-primary form-control"/>
+    </div>
+    
+
+
+
+</form>

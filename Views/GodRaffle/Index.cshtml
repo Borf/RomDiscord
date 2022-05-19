@@ -18,6 +18,16 @@ function changeEmoji(roleID, newValue)
         alert(data);
     });
 }
+function addRollLength()
+{
+    var newEl = $('<input type="number" class="form-control" name="RollLengths"/>');
+    $("#rolllengths").append(newEl);
+}
+
+function removeRollLength(el)
+{
+    $(el).parent().remove();
+}
 </script>
 
 <h1>God Equipment Raffle</h1>
@@ -76,6 +86,19 @@ function changeEmoji(roleID, newValue)
                     <!option @(role.Id == Model.Settings.DonateRole ? "selected": "") value="@role.Id">@role.Name</!option>
                 }
             </select>
+        </div>
+        <div class="form-group">
+            <label>Roll Lengths</label>
+            <div id="rolllengths">
+            @foreach(var length in Model.Settings.RollLengths)
+            {
+                <div class="input-group">
+                    <input type="number" class="form-control" name="RollLengths" value="@length"/>
+                    <input type="button" class="btn btn-danger" onclick="removeRollLength(this)" value="×">
+                </div>
+            }
+            </div>
+            <input type="button" class="btn btn-primary" onclick="addRollLength(); return false" value="Add">
         </div>
         <div class="form-group">
             <label>Save</label>

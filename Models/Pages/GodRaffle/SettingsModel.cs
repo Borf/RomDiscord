@@ -14,7 +14,8 @@ namespace RomDiscord.Models.Pages.GodRaffle
 			GuildMemberRole = moduleSettings.GetUlong(guild, "godraffle", "guildmemberrole", 0);
 			DonateRole = moduleSettings.GetUlong(guild, "godraffle", "donaterole", 0);
 			Channel = moduleSettings.GetUlong(guild, "godraffle", "channel", 0);
-			DaysEnabled = moduleSettings.Get(guild, "godraffle", "daysenabled","").Split(",", StringSplitOptions.RemoveEmptyEntries).Select(s => int.Parse(s)).ToList();
+			DaysEnabled = moduleSettings.Get(guild, "godraffle", "daysenabled", "").Split(",", StringSplitOptions.RemoveEmptyEntries).Select(s => int.Parse(s)).ToList();
+			RollLengths = moduleSettings.Get(guild, "godraffle", "rolllengths", "").Split(",", StringSplitOptions.RemoveEmptyEntries).Select(s => int.Parse(s)).ToList();
 		}
 		public SettingsModel()
 		{
@@ -28,7 +29,7 @@ namespace RomDiscord.Models.Pages.GodRaffle
 		public ulong GuildMemberRole { get; set; } = 0;
 		public ulong DonateRole { get; set; } = 0;
 		public ulong Channel { get; set; } = 0;
-
+		public List<int> RollLengths { get; set; } = new List<int>() { 1 };
 		public List<int> DaysEnabled { get; set; } = new List<int>();
 
 	}

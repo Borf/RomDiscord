@@ -26,13 +26,13 @@ namespace RomDiscord.Controllers
 		}
 		public async Task<IActionResult> Index()
 		{
-			var guild = context.Guilds.First(g => g.DiscordGuildId == HttpContext.SessionData().ActiveGuild.Id);
+			//var guild = context.Guilds.First(g => g.DiscordGuildId == HttpContext.SessionData().ActiveGuild.Id);
 
 			var model = new Models.Pages.Quiz.Index()
 			{
-				Settings = new Models.Pages.Quiz.SettingsModel(moduleSettings, guild),
-				Channels = discord.Guilds.First(g => g.Id == guild.DiscordGuildId).Channels,
-				Quizes = context.Quizes.Include(q => q.Questions).Include(q => q.QuizPlays).ToList()
+				Settings = new Models.Pages.Quiz.SettingsModel(), //new Models.Pages.Quiz.SettingsModel(moduleSettings, guild),
+				Channels = new List<SocketGuildChannel>(),// discord.Guilds.First(g => g.Id == guild.DiscordGuildId).Channels,
+				Quizes = await context.Quizes.Include(q => q.Questions).Include(q => q.QuizPlays).ToListAsync()
 			};
 
 
@@ -42,7 +42,7 @@ namespace RomDiscord.Controllers
 		[HttpGet("EditQuiz/{id}")]
 		public async Task<IActionResult> EditQuiz(int id)
 		{
-			return View(context.Quizes.Include(q => q.Questions).First(q => q.QuizId == id));
+			return View(await context.Quizes.Include(q => q.Questions).FirstAsync(q => q.QuizId == id));
 		}
 
 		[HttpPost("EditQuiz/{id}/AddQuestion")]

@@ -6,7 +6,7 @@ namespace RomDiscord.Models.Db
 	{
 		[Key]
 		public int QuizQuestionId { get; set; }
-		public Quiz Quiz { get; set; }
+		public Quiz Quiz { get; set; } = null!;
 		public string Question { get; set; } = "";
 		public enum QType
 		{

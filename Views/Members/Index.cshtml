@@ -1,0 +1,72 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Members.Index;
+    @using RomDiscord.Util;
+}
+
+<h1>Member Management (@Model.Members.Count / 100)</h1>
+<div class="container border">
+    @foreach(var member in Model.Members.OrderBy(m => m.Name))
+    {
+        var dcMember = Model.DiscordMembers.FirstOrDefault(u => u.Id == member.DiscordId);
+        var color = "success";
+        if (dcMember == null)
+            color = "danger";
+
+        <div class="card text-white border m-1 bg-dark" style="float: left; width: 300px; height: 150px; background-image: @(string.Join(",", member.JobList.Select(cls => "url('/img/Jobs/"+cls+".png')").ToList())); background-repeat: no-repeat; background-position: 0px bottom, 100px bottom, 200px bottom">
+            <div class="card-header m-0 p-0" style="background-color: rgba(34, 37, 41, 0.6)">
+                <div style="float: right; margin-left: -100%;">
+                    <div class="btn-group">
+                        <a asp-action="Edit" asp-route-id="@member.MemberId" class="btn btn-primary">Edit</a>
+                        <a href="#" class="btn btn-danger">Left</a>
+                    </div>
+                </div>
+                <h3 class="px-2">@member.Name</h3>
+            </div>
+            <div class="card-body m-0 py-0" style="background-color: rgba(34, 37, 41, 0.6)">
+                DC: <span class="badge bg-@color" style="float: right">@member.DiscordName</span><br/>
+                Classes: 
+                @foreach(var cls in member.JobList)
+                {
+                    <span class="badge p-0" style="float: right;"><img src="/img/Jobs/@(cls.ToString()).png" height="20"/></span>
+                }
+                <br/>
+                Joined: <span class="badge bg-info" style="float: right">@(member.JoinDate != null ? member.JoinDate : "-")</span><br/>
+                Notes: 
+                @if(member.ShortNote != null)
+                {
+                    @foreach(var note in member.ShortNote.Split("\n"))
+                    {
+                        <span class="badge bg-warning text-black mx-1" style="float: right;">@note</span>
+                    }
+                }
+            </div>
+        </div>
+    }
+    <div style="clear: both"></div>
+</div>
+
+<div class="container border border-secondary p-3">
+    <form asp-action="AddMember" method="post">
+        <h2>Add new member</h2>
+        <div class="form-group">
+            <label>Name</label>
+            <input class="form-control" name="Name">
+        </div>
+        <div class="form-group">
+            <label>Discord name</label>
+            <select name="DiscordId" class="form-control">
+                <option value="0">-</option>
+                @foreach(var u in Model.DiscordMembers.OrderBy(u => u.DisplayName))
+                {
+                    <option value="@u.Id">@u.DisplayName</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label></label>
+            <input type="submit" value="Add" class="btn btn-primary form-control"/>
+        </div>
+    </form>
+</div>
+
+<h1>Old Members</h1>

@@ -9,7 +9,7 @@ namespace RomDiscord.Services
 		{
 			public DateTime NextRun { get; set; }
 			public TimeSpan? TimeSpan { get; set; } = null;
-			public Action<IServiceProvider> Action { get; set; }
+			public Action<IServiceProvider> Action { get; set; } = null!;
 		}
 
 		IServiceProvider services;
@@ -76,17 +76,17 @@ namespace RomDiscord.Services
 		private Task LoadTasks()
 		{
 			var assembly = Assembly.GetEntryAssembly();
+			if (assembly == null)
+				return Task.CompletedTask;
 			foreach(var t in assembly.GetTypes())
 			{
 				var getTasks = t.GetMethod("GetTasks");
 				if(getTasks != null)
 				{ 
 					object? v = services.GetService(t);
-					List<ScheduledTask> tasks = (List<ScheduledTask>)getTasks.Invoke(v, null);
+					List<ScheduledTask>? tasks = (List<ScheduledTask>?)getTasks.Invoke(v, null);
 					if(tasks != null)
-					{
 						this.tasks.AddRange(tasks);
-					}
 				}
 			}
 			Console.WriteLine("Registered all tasks");

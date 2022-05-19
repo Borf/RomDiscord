@@ -1,0 +1,31 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Emoji.Index
+    @using RomDiscord.Models.Db;
+}
+<script>
+function UpdateJobEmoji(job, value)
+{
+    $.postJSON("/Emoji/UpdateJobEmoji/" + job + "/" + value,
+    {
+    }, function (data) {
+        alert(data);
+    });
+}
+</script>
+<h1>Job Emoji</h1>
+<ul class="list-group">
+@foreach(var job in Enum.GetValues<Job>())
+{
+    <li class="list-group-item bg-dark text-white">
+        <img src="/img/Jobs/@(job).png" style="height: 32px"/>
+        <span style="width: 200px; display: inline-block; line-height: 32px;">@job.Name()</span>
+        <select class="form-input" style="height: 32px;" onchange="UpdateJobEmoji('@job', this.value)">
+            <option value="0">-</option>
+            @foreach(var emoji in Model.Emoji)
+            {
+                <!option value="@emoji.Id" @(Model.Settings.GetUlong(Model.Guild, "emoji", job.ToString()) == emoji.Id ? "selected" : "")>@emoji.Name</!option>
+            }
+        </select>
+    </li>
+}
+</ul>

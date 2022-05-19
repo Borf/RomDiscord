@@ -11,7 +11,7 @@ namespace RomDiscord.Models.Pages.GodRaffle
 		{
 			public int Date { get; set; }
 			public DayOfWeek DayOfWeek { get; set; }
-			public List<GodEquipRoll> rolls { get; set; }
+			public List<GodEquipRoll> rolls { get; set; } = null!;
 		}
 		public List<Day> Days { get; set; } = new List<Day>();
 	}

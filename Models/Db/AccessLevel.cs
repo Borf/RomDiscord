@@ -6,7 +6,7 @@ namespace RomDiscord.Models.Db
 	{
 		[Key]
 		public int AccessLevelId { get; set; }
-		public Role Role { get; set; }
-		public User User { get; set; }
+		public Role Role { get; set; } = null!;
+		public User User { get; set; } = null!;
 	}
 }

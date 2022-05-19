@@ -13,15 +13,18 @@ namespace RomDiscord.Services
 
         public DiskCache()
 		{
-			try
-			{
-				using (var fs = new FileStream("session.txt", FileMode.Open))
-					cache = JsonSerializer.Deserialize<ConcurrentDictionary<string, byte[]>>(fs);
+            try
+            {
+#pragma warning disable CS8601 // Possible null reference assignment.
+                using (var fs = new FileStream("session.txt", FileMode.Open))
+                    if (fs != null)
+						cache = JsonSerializer.Deserialize<ConcurrentDictionary<string, byte[]>>(fs);
+#pragma warning restore CS8601 // Possible null reference assignment.
 			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e);
-			}
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
 		}
 
 		public byte[]? Get(string key)

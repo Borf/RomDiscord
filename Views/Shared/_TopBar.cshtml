@@ -11,7 +11,7 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
                 </li>
-                @if (User.Identity.IsAuthenticated && Context.SessionData != null)
+                @if ((User.Identity?.IsAuthenticated ?? false) && Context.SessionData != null)
                 {
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -21,7 +21,7 @@
                             }
                             else
                             {
-                                <span><img style="height: 32px; width: auto; margin-right: 10px;" src="https://cdn.discordapp.com/icons/@Context.SessionData().ActiveGuild.Id/@(Context.SessionData().ActiveGuild.Icon).png">@Context.SessionData().ActiveGuild.Name</span>
+                                <span><img style="height: 32px; width: auto; margin-right: 10px;" src="https://cdn.discordapp.com/icons/@Context.SessionData()?.ActiveGuild?.Id/@(Context.SessionData().ActiveGuild?.Icon).png">@Context.SessionData().ActiveGuild?.Name</span>
                             }
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark guildpickerlist" aria-labelledby="navbarDropdown">

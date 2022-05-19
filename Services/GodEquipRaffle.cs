@@ -31,13 +31,16 @@ namespace RomDiscord.Services
 					{
 						var dcGuild = discord.Guilds.First(g => g.Id == guild.DiscordGuildId);
 						var channel = dcGuild.TextChannels.First(c => c.Id == moduleSettings.GetUlong(guild, "godraffle", "channel"));
-						var lastMessages = await channel.GetMessagesAsync(100).FlattenAsync();
-
-						foreach (var msg in lastMessages)
+						if (channel != null)
 						{
-							//Console.WriteLine(msg.Author.Username + "> " + msg.Content);
+							var lastMessages = await channel.GetMessagesAsync(100).FlattenAsync();
+
+							foreach (var msg in lastMessages)
+							{
+								//Console.WriteLine(msg.Author.Username + "> " + msg.Content);
+							}
+							//Console.WriteLine("Initializing for guild " + guild.GuildName);
 						}
-						//Console.WriteLine("Initializing for guild " + guild.GuildName);
 					}
 				}
 			}
@@ -63,7 +66,7 @@ namespace RomDiscord.Services
 			SettingsModel settings = new SettingsModel(moduleSettings, guild);
 
 			var currentDate = startDate;
-			for (int dayIndex = 0; dayIndex < 7; dayIndex++)
+			for (int di = 0; di < 7; di++)
 			{
 				foreach (var ge in ges)
 					context.GodEquipRolls.RemoveRange(context.GodEquipRolls.Where(r => r.Date == DateOnly.FromDateTime(currentDate) && r.GodEquip == ge));
@@ -71,17 +74,24 @@ namespace RomDiscord.Services
 			}
 			await context.SaveChangesAsync();
 
-			currentDate = startDate;
-			for (int dayIndex = 0; dayIndex < 7; dayIndex++)
+			foreach (var ge in ges.OrderByDescending(ge => ge.GodEquip.Type).ThenBy(ge => users.Count(u => u.Roles.Any(r => r.Id == ge.DiscordRoleId) && u.Roles.Any(r => r.Id == 819475701232959528))).ToList())
 			{
-				if (settings.DaysEnabled.Contains(dayIndex))
+				for (int c = 0; c < ge.Amount; c++)
 				{
-					foreach (var ge in ges.OrderByDescending(ge => ge.GodEquip.Type).ThenBy(ge => users.Count(u => u.Roles.Any(r => r.Id == ge.DiscordRoleId) && u.Roles.Any(r => r.Id == 819475701232959528))))
+					int rollAmountIndex = 0;
+					currentDate = startDate;
+					int dayIndex = 0;
+					while (dayIndex < 7)
 					{
-						for (int c = 0; c < ge.Amount; c++)
+						if (settings.DaysEnabled.Contains(dayIndex))
 						{
-							var roleUsers = users.Where(u => u.Roles.Any(r => r.Id == ge.DiscordRoleId) && u.Roles.Any(r => r.Id == 819475701232959528)).ToList();
-
+							ulong roleId = ge.DiscordRoleId;
+							var roleUsers = users.Where(u => u.Roles.Any(r => r.Id == roleId) && u.Roles.Any(r => r.Id == 819475701232959528)).ToList();
+							if (roleUsers.Count == 0)
+							{
+								dayIndex = 7;
+								break;
+							}
 							if (roleUsers.Count > 0)
 							{
 								var priorities = new Dictionary<SocketGuildUser, float>();
@@ -115,22 +125,31 @@ namespace RomDiscord.Services
 									pick++;
 								}
 
-
-								var roll = new GodEquipRoll()
+								for (int i = 0; i < settings.RollLengths[rollAmountIndex% settings.RollLengths.Count]; i++)
 								{
-									Date = DateOnly.FromDateTime(currentDate),
-									GodEquip = ge,
-									UserId = roleUsers[pick].Id,
-									Name = roleUsers[pick].Username + "#" + roleUsers[pick].Discriminator
-								};
-								context.GodEquipRolls.Add(roll);
+									var roll = new GodEquipRoll()
+									{
+										Date = DateOnly.FromDateTime(currentDate),
+										GodEquip = ge,
+										UserId = roleUsers[pick].Id,
+										Name = roleUsers[pick].Username + "#" + roleUsers[pick].Discriminator
+									};
+									context.GodEquipRolls.Add(roll);
+									currentDate = currentDate.AddDays(1);
+									dayIndex++;
+									if (!settings.DaysEnabled.Contains(dayIndex) && dayIndex < 7)
+									{
+										currentDate = currentDate.AddDays(1);
+										dayIndex++;
+									}
+								}
+								rollAmountIndex++;
 								await context.SaveChangesAsync();
 
 							}
 						}
 					}
 				}
-				currentDate = currentDate.AddDays(1);
 			}
 			await context.SaveChangesAsync();
 
@@ -154,14 +173,19 @@ namespace RomDiscord.Services
 				.WithTitle("God Equip")
 				.WithImageUrl("https://cdn.discordapp.com/attachments/819834309489590322/917802629155930152/GodRaffleFooter.png")
 				.WithColor(9021952)
-				.WithDescription("This is the god equipment for week of " + startDate.Date)
+				.WithDescription("This is the god equipment for week of " + startDate.Date.ToString("D"))
 				.WithFooter(new EmbedFooterBuilder().WithText("").WithIconUrl("https://cdn.discordapp.com/emojis/736643099274641419.png"));
 			var currentDate = startDate;
 			int c = 0;
-			for (int i = 0; i < 7; i++)
+			int rollAmountIndex = 0;
+			int i = 0;
+			while(i < 7)
 			{
 				if (settings.DaysEnabled.Contains(i))
 				{
+					int len = settings.RollLengths[rollAmountIndex % settings.RollLengths.Count];
+					rollAmountIndex++;
+
 					string val = "";
 					var rolls = await context.GodEquipRolls.Where(r => r.GodEquip.Guild == guild && r.Date == DateOnly.FromDateTime(currentDate)).Include(r => r.GodEquip.GodEquip).ToListAsync();
 					string lastName = "";
@@ -172,7 +196,7 @@ namespace RomDiscord.Services
 							if (roll.GodEquip.Emoji != "")
 							{
 								var e = dcGuild.Emotes.FirstOrDefault(e => e.Name == roll.GodEquip.Emoji);
-								if(e != null)
+								if (e != null)
 									val += $"<:{e.Name}:{e.Id}> <@{roll.UserId}>\n";
 								else
 									val += $"{roll.GodEquip.GodEquip.Name} <@{roll.UserId}>\n";
@@ -191,8 +215,14 @@ namespace RomDiscord.Services
 
 					if (val != "")
 					{
+						string name = "**" + currentDate.DayOfWeek + "** " + currentDate.Day + "-" + currentDate.Month;
+						var nextData = currentDate.AddDays(len);
+						if (len > 1)
+						{
+							name = "**" + currentDate.DayOfWeek + "-" + nextData.DayOfWeek + "** " + currentDate.Day + "-" + currentDate.Month + " to " + nextData.Day + "-" + nextData.Month;
+						}
 						eb.AddField(new EmbedFieldBuilder()
-							.WithName("**" + currentDate.DayOfWeek + "** " + currentDate.Day + "-" + currentDate.Month)
+							.WithName(name)
 							.WithIsInline(true)
 							.WithValue(val));
 						c++;
@@ -202,9 +232,14 @@ namespace RomDiscord.Services
 								.WithIsInline(true)
 								.WithValue("\u200B"));
 					}
+					currentDate = currentDate.AddDays(len);
+					i += len;
 				}
-
-				currentDate = currentDate.AddDays(1);
+				else
+				{
+					currentDate = currentDate.AddDays(1);
+					i++;
+				}
 			}
 			return eb.Build();
 		}

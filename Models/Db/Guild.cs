@@ -6,9 +6,9 @@ namespace RomDiscord.Models.Db
 	{
 		[Key]
 		public int GuildId { get; set; }
-		public string GuildName { get; set; }
+		public string GuildName { get; set; } = "";
 		public ulong DiscordGuildId { get; set; }
-		public List<AccessLevel> AccessLevels { get; set; }
-		public List<User> Users { get; set; }
+		public List<AccessLevel> AccessLevels { get; set; } = null!;
+		public List<User> Users { get; set; } = null!;
 	}
 }

@@ -8,6 +8,6 @@
 		public string Type { get; set; } = "Open";
 		public IFormFile? Image { get; set; } = null;
 		public bool RemoveImage { get; set; } = false;
-		public string Action { get; set; }
+		public string Action { get; set; } = null!;
 	}
 }
