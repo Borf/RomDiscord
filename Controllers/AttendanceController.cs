@@ -66,6 +66,24 @@ namespace RomDiscord.Controllers
 			});
 		}
 
+		[HttpGet("Stats")]
+		public async Task<IActionResult> Stats()
+		{
+			var guild = this.Guild(context);
+			if (guild == null)
+				return RedirectToAction("Index", "Home");
+			return View(await context.Attendance.Include(a => a.Members).ThenInclude(am => am.Member).Where(a => a.Guild == guild).OrderBy(a => a.Date).ToListAsync());
+		}
+
+		[HttpGet("StatsMember")]
+		public async Task<IActionResult> StatsMember()
+		{
+			var guild = this.Guild(context);
+			if (guild == null)
+				return RedirectToAction("Index", "Home");
+
+			return View((await context.Attendance.Include(a => a.Members).ThenInclude(am => am.Member).Where(a => a.Guild == guild).OrderBy(a => a.Date).ToListAsync(), await context.Members.Where(m => m.Guild == guild).ToListAsync()));
+		}
 		[HttpPost("Record/{year}/{month}/{day}")]
 		public async Task<IActionResult> RecordPost(int year, int month, int day, [FromForm]List<int> Members)
 		{

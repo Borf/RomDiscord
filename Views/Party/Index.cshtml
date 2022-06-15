@@ -1,5 +1,16 @@
 ﻿@{
     @model RomDiscord.Models.Pages.Party.Index
+
+    Func<RomDiscord.Models.Db.Member, string> bgColor = (member) =>
+    {
+        if (!member.Active)
+            return "bg-warning text-black";
+        else if (Model.LastAttendance.Members.Any(m => m.Member == member))
+            return "bg-dark text-white";
+        else
+            return "bg-danger text-white";
+
+    };
 }
 
 <style>
@@ -14,19 +25,49 @@
 
 <script>
     !function(a){function f(a,b){if(!(a.originalEvent.touches.length>1)){a.preventDefault();var c=a.originalEvent.changedTouches[0],d=document.createEvent("MouseEvents");d.initMouseEvent(b,!0,!0,window,1,c.screenX,c.screenY,c.clientX,c.clientY,!1,!1,!1,!1,0,null),a.target.dispatchEvent(d)}}if(a.support.touch="ontouchend"in document,a.support.touch){var e,b=a.ui.mouse.prototype,c=b._mouseInit,d=b._mouseDestroy;b._touchStart=function(a){var b=this;!e&&b._mouseCapture(a.originalEvent.changedTouches[0])&&(e=!0,b._touchMoved=!1,f(a,"mouseover"),f(a,"mousemove"),f(a,"mousedown"))},b._touchMove=function(a){e&&(this._touchMoved=!0,f(a,"mousemove"))},b._touchEnd=function(a){e&&(f(a,"mouseup"),f(a,"mouseout"),this._touchMoved||f(a,"click"),e=!1)},b._mouseInit=function(){var b=this;b.element.bind({touchstart:a.proxy(b,"_touchStart"),touchmove:a.proxy(b,"_touchMove"),touchend:a.proxy(b,"_touchEnd")}),c.call(b)},b._mouseDestroy=function(){var b=this;b.element.unbind({touchstart:a.proxy(b,"_touchStart"),touchmove:a.proxy(b,"_touchMove"),touchend:a.proxy(b,"_touchEnd")}),d.call(b)}}}(jQuery);
+
     var ws;
     $(function()
     {
+        $('[data-toggle="tooltip"]').tooltip();
+        $('.dropdown-toggle').dropdown();
+
         ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/party/ws");
         ws.onmessage = handlepacket
         ws.onerror = function(e) { alert("Error: " + e); console.log(e); }
+        ws.onclose = function(e) { alert("Disconnected, please refresh the page\n" + e); console.log(e); }
         addDraggable($(".member"));
+        $(".party ul").droppable({
+            greedy: true,
+            drop:function(event, ui)
+            {
+                var target = $(event.target);
+                ws.send(JSON.stringify(
+                    {
+                        "Action" : "Move", 
+                        "Member" : parseInt($(ui.draggable).attr("MemberId")),
+                        "Party" : parseInt($(event.target).parent().attr("PartyId")),
+                    }));
+                if(target.hasClass("leader"))
+                {
+                    //move all current LI to member LI
+                    ws.send(JSON.stringify(
+                    {
+                        "Action" : "Leader", 
+                        "Member" : parseInt($(ui.draggable).attr("MemberId")),
+                        "Party" : parseInt($(event.target).parent().attr("PartyId")),
+                    }));
+                }
+                $(event.target).append($(ui.draggable).detach().css({'top':'', 'left':''}));
+            }
+        });
+
         $(".party").droppable({
             greedy: true,
             drop:function(event, ui)
             {
-                var target = $(event.target).find("ul");
-                $(event.target).find("ul").append($(ui.draggable).detach().css({'top':'', 'left':''}));
+                var target = $(event.target).find("ul:last");
+                $(event.target).find("ul:last").append($(ui.draggable).detach().css({'top':'', 'left':''}));
                 ws.send(JSON.stringify(
                     {
                         "Action" : "Move", 
@@ -58,6 +99,9 @@
         {
             case "Move":
                 moveMember(data.Member, data.Party);
+                break;
+            case "PartyName":
+                $("div[partyid="+data.Party+"] .card-header input").val(data.Name);                
                 break;
         }
 
@@ -130,6 +174,10 @@
     {
         $(".memberlist").slideToggle();
     }
+    function ChangPartyRole(partyid, src)
+    {
+        ws.send(JSON.stringify({"Action" : "PartyRole", "Party" : partyid, "Role" : src.value }));
+    }
 </script>
 
 <div class="input-group m-2">
@@ -139,7 +187,7 @@
 <ul class="memberlist" style="display: none">
     @foreach(var member in Model.Members.Where(m => m.PartyId == null).OrderBy(m => m.Name.ToLower()))
     {
-        <li MemberId="@member.MemberId" class="list-group-item bg-dark text-white member">@member.Name               
+        <li MemberId="@member.MemberId" class="list-group-item @bgColor(member) member" data-toggle="tooltip" title="@(string.Join("", Model.MemberAttendance[member].Select(a => a ? "✅" : "🟥")))">@member.Name               
             @foreach(var job in member.JobList)
             {
                 <img src="/img/Jobs/@(job).png" style="height: 22px; float: right;">
@@ -151,12 +199,35 @@
 <div id="parties">
 @foreach(var party in Model.Parties)
 {
-    <div PartyId="@party.PartyId" class="card border m-2 bg-dark party" style="float: left; height: 290px; width: 200px;">
-        <div class="card-header py-1 bg-secondary"><input onkeyup="changepartyname(@party.PartyId)" onchange="changepartyname(@party.PartyId)" value="@party.Name" style="width: 100px" class="bg-secondary text-white name"/><span style="float: right;" class="badge bg-primary">MVP</span></div>
-        <ul class="list-group list-group-flush">
-            @foreach(var member in party.Members)
+    <div PartyId="@party.PartyId" class="card border m-2 bg-dark party" style="float: left; height: 340px; width: 250px;">
+        <div class="card-header py-1 bg-secondary">
+            <div class="input-group input-group-sm">
+                <input onkeyup="changepartyname(@party.PartyId)" onchange="changepartyname(@party.PartyId)" value="@party.Name" style="width: 100px" class="form-control bg-secondary text-white name"/>
+                <select class="form-control bg-secondary text-white" onchange="ChangPartyRole(@party.PartyId, this)">
+                    @foreach(var role in Enum.GetValues<RomDiscord.Models.Db.Party.PartyRole>())
+                    {
+                        <!option value="@role" @(party.Role == role ? "selected":"")>@role</!option>
+                    }
+                </select>
+            </div>
+        </div>
+        <ul class="list-group list-group-flush leader">
+        Leader:
+        @if(party.Leader != null)
+        {
+            <li MemberId="@party.Leader.MemberId" class="list-group-item @bgColor(party.Leader) member" data-toggle="tooltip" title="@(string.Join("", Model.MemberAttendance[party.Leader].Select(a => a ? "✅" : "🟥")))">@party.Leader.Name
+            @foreach(var job in party.Leader.JobList)
             {
-                <li MemberId="@member.MemberId" class="list-group-item bg-dark text-white member">@member.Name
+                <img src="/img/Jobs/@(job).png" style="height: 22px; float: right;">
+            }
+            </li>
+        }
+        </ul>
+        <ul class="list-group list-group-flush members">
+        Members:
+            @foreach(var member in party.Members.Where(m => m != party.Leader))
+            {
+                <li MemberId="@member.MemberId" class="list-group-item @bgColor(member) member" data-toggle="tooltip" title="@(string.Join("", Model.MemberAttendance[member].Select(a => a ? "✅" : "🟥")))">@member.Name
                 @foreach(var job in member.JobList)
                 {
                     <img src="/img/Jobs/@(job).png" style="height: 22px; float: right;">
@@ -169,15 +240,26 @@
     <div style="clear: both"></div>
 </div>
 <br/>
-<form method="post" asp-action="Publish">
-<div class="input-group">
+<h1>Post to discord</h1>
+<form enctype="multipart/form-data" method="post" asp-action="Publish" >
+    <div class="form-group">
+        <label>Add a picture</label>
+        <input type="file" class="form-control" name="Image"/>
+    </div>
+    <div class="form-group">
+        <label>Some motivational text, or tactics</label>
+        <textarea name="Description" class="form-control" cols="8"></textarea>
+    </div>
+    <div class="form-group">
     <label style="margin-right: 10px; line-height: 25px;">Publish to discord channel</label>
-    <select name="Channel" class="form-control custom-select">
-    @foreach(var channel in Model.Channels.Where(c => c is Discord.WebSocket.SocketGuildChannel).OrderBy(c => c.Position))
-    {
-        <!option @(channel.Id == Model.ActiveChannel ? "selected": "") value="@channel.Id">@channel.Name</!option>
-    }
-    </select>
-    <input class="btn btn-primary" type="submit" class="form-control" value="Post"/>
+    <div class="input-group">
+        <select name="Channel" class="form-control custom-select">
+        @foreach(var channel in Model.Channels.Where(c => c is Discord.WebSocket.SocketGuildChannel).OrderBy(c => c.Position))
+        {
+            <!option @(channel.Id == Model.ActiveChannel ? "selected": "") value="@channel.Id">@channel.Name</!option>
+        }
+        </select>
+        <input class="btn btn-primary" type="submit" class="form-control" value="Post"/>
+    </div>
 </div>
 </form>

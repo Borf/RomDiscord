@@ -1,0 +1,45 @@
+﻿@{
+    @model List<RomDiscord.Models.Db.Attendance>;
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js" integrity="sha256-ErZ09KkZnzjpqcane4SCyyHsKAXMvID9/xwbl/Aq1pc=" crossorigin="anonymous"></script>
+
+
+<canvas id="myChart" width="400" height="200"></canvas>
+<script>
+const ctx = document.getElementById('myChart').getContext('2d');
+const myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [ 
+            @foreach(var attendance in Model)
+            {
+                @Html.Raw("'" + attendance.Date + "', ");
+            }
+            ],
+        datasets: [{
+            label: 'Attendance',
+            data: [
+                @foreach(var attendance in Model)
+                {
+                    @Html.Raw("'" + attendance.Members.Count + "', ");
+                }
+            ],
+            backgroundColor: [
+                'rgba(255, 159, 64, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 255,255, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>

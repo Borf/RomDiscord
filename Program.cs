@@ -41,7 +41,6 @@ builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 DiscordSocketConfig _socketConfig = new()
 {
 	GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers) 
-		& ~GatewayIntents.GuildScheduledEvents
 		& ~GatewayIntents.GuildInvites,
 	AlwaysDownloadUsers = true,
 //	LogLevel = LogSeverity.Debug
@@ -53,6 +52,7 @@ builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
 builder.Services.AddSingleton<InteractionHandler>();
 builder.Services.AddScoped<GodEquipRaffle>();
+builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<ModuleSettings>();
 //builder.Services.AddSingleton<CommandHandlingService>();
 builder.Services.AddHttpClient();
@@ -127,6 +127,21 @@ using (var context = scope.ServiceProvider.GetRequiredService<Context>())
 
 
 	await scope.ServiceProvider.GetRequiredService<GodEquipRaffle>().Initialize();
+
+
+	var lumi = client.Guilds.First(g => g.Id == 819438757663997992);
+	var other = await lumi.GetEventAsync(979056899423096922);
+	/*await other.ModifyAsync(e => { 
+		e.Status = GuildScheduledEventStatus.Scheduled; 
+		 });
+	await other.ModifyAsync(e => {
+		e.StartTime = DateTimeOffset.Now.AddMinutes(5);
+	});*/
+	foreach (var e in await lumi.GetEventsAsync())
+	{
+		Console.WriteLine(e);
+	}
+
 }
 
 
@@ -135,7 +150,7 @@ var taskScheduler = app.Services.GetServices<IHostedService>().First(s => (s as 
 if(taskScheduler != null)
 	await taskScheduler.InitializeAsync();
 
-app.UseWebSockets();
+app.UseWebSockets(new WebSocketOptions() { KeepAliveInterval = TimeSpan.FromSeconds(30) });
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

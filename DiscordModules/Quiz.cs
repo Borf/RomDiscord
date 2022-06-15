@@ -252,12 +252,14 @@ namespace RomDiscord.DiscordModules
 						List<int> hintSpots = new List<int>();
 
 						string answer = questions[question].Answer;
+						if (answer.Contains("|"))
+							answer = answer.Split("|")[0];
 
 						for (int hintCount = 0; hintCount < 3 && !guessed; hintCount++)
 						{
 							var hint = "";
 							for (int i = 0; i < answer.Length; i++)
-								if (answer[i] != ' ' && !hintSpots.Contains(i))
+								if (answer[i] != '.' && answer[i] != '-' && answer[i] != ' ' && !hintSpots.Contains(i))
 									hint += "\\_ ";
 								else
 									hint += answer[i];
@@ -265,7 +267,7 @@ namespace RomDiscord.DiscordModules
 							//unmask
 							int letter = r.Next(answer.Length);
 							int c = 0;
-							while (hintSpots.Contains(letter) && answer[letter] != ' ' && c < 10)
+							while (hintSpots.Contains(letter) && answer[letter] != ' ' && answer[letter] != '-' && c < 10)
 							{
 								letter = r.Next(answer.Length);
 								c++;
@@ -333,34 +335,41 @@ namespace RomDiscord.DiscordModules
 				return;
 			if (msg.Author.IsBot)
 				return;
-			if(questions != null && questions.Count > question && msg.Content.ToLower() == questions[question].Answer.ToLower() && (roundEnd == DateTime.MinValue || roundEnd > DateTime.Now))
+			if(questions != null && questions.Count > question && (roundEnd == DateTime.MinValue || roundEnd > DateTime.Now))
 			{
-				int currentScore = 0;
-				using (var scope = services.CreateScope())
+				var answers = questions[question].Answer.ToLower().Split("|");
+				foreach (var answer in answers)
 				{
-					using var context = scope.ServiceProvider.GetRequiredService<Context>();
-					var score = context.QuizPlayScores.FirstOrDefault(qps => qps.Round.QuizPlayRoundId == playRoundId && qps.PlayerId == msg.Author.Id);
-					if (score == null)
+					if (answer.ToLower() == msg.Content.ToLower())
 					{
-						score = new QuizPlayPlayerScore()
+						int currentScore = 0;
+						using (var scope = services.CreateScope())
 						{
-							PlayerId = msg.Author.Id,
-							Round = context.QuizPlayRounds.First(qpr => qpr.QuizPlayRoundId == playRoundId),
-							Score = 0
-						};
-						context.QuizPlayScores.Add(score);
-					}
-					score.Score+=scorePoints[scoring];
-					await context.SaveChangesAsync();
-					currentScore = score.Score;
-					scoring++;
-				}
+							using var context = scope.ServiceProvider.GetRequiredService<Context>();
+							var score = context.QuizPlayScores.FirstOrDefault(qps => qps.Round.QuizPlayRoundId == playRoundId && qps.PlayerId == msg.Author.Id);
+							if (score == null)
+							{
+								score = new QuizPlayPlayerScore()
+								{
+									PlayerId = msg.Author.Id,
+									Round = context.QuizPlayRounds.First(qpr => qpr.QuizPlayRoundId == playRoundId),
+									Score = 0
+								};
+								context.QuizPlayScores.Add(score);
+							}
+							score.Score+=scorePoints[scoring];
+							await context.SaveChangesAsync();
+							currentScore = score.Score;
+							scoring++;
+						}
 
-				if (roundEnd == DateTime.MinValue)
-					quizMessageInterrupt.Cancel();
-				await msg.Channel.SendMessageAsync($"That is correct! {msg.Author.Mention} guessed the answer. The answer is **{questions[question].Answer}**. {msg.Author.Mention} now has {currentScore} points");
-				if(roundEnd == DateTime.MinValue)
-					roundEnd = DateTime.Now.AddSeconds(1);
+						if (roundEnd == DateTime.MinValue)
+							quizMessageInterrupt.Cancel();
+						await msg.Channel.SendMessageAsync($"That is correct! {msg.Author.Mention} guessed the answer. The answer is **{questions[question].Answer}**. {msg.Author.Mention} now has {currentScore} points");
+						if(roundEnd == DateTime.MinValue)
+							roundEnd = DateTime.Now.AddSeconds(1);
+					}
+				}
 			}
 		}
 	}

@@ -13,7 +13,7 @@
         <li class="nav-item nav-sub"><a asp-controller="GodRaffle" asp-action="CalendarWeek" class="nav-link @Html.ActiveClass("GodRaffle","CalendarWeek")" aria-current="page"><span data-feather="calendar"></span>Calendar (week)</a></li>
     }
     <li class="nav-item"><a href="#" class="nav-link text-secondary" aria-current="page"><span data-feather="zap"></span>Popup PVP</a></li>
-    <li class="nav-item"><a href="#" class="nav-link text-secondary" aria-current="page"><span data-feather="calendar"></span>Events</a></li>
+    <li class="nav-item"><a asp-controller="Events" asp-action="Index" class="nav-link @Html.ActiveClass("Events")" aria-current="page"><span data-feather="calendar"></span>Events</a></li>
     <li class="nav-item"><a href="#" class="nav-link text-secondary" aria-current="page"><span data-feather="box"></span>Items</a></li>
     <li class="nav-item"><a href="#" class="nav-link text-secondary" aria-current="page"><span data-feather="smile"></span>Mobs</a></li>
     <li class="nav-item"><a href="#" class="nav-link text-secondary" aria-current="page"><span data-feather="dollar-sign"></span>Exchange</a></li>
@@ -38,6 +38,6 @@
 }
 else
 {
-    <li class="nav-item active">Please login in<br/>the topright corner</li>
+    <li class="nav-item active"></li>
 }
 </ul>

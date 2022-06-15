@@ -5,7 +5,7 @@
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    @if(User.Identity?.IsAuthenticated ?? false)
+    @if(!User.Identity?.IsAuthenticated ?? false)
     {
         <div class="alert alert-warning">
             Please Login
@@ -20,7 +20,7 @@
     else if(!Model.BotInGuild)
     {
         <div class="alert alert-warning">
-            The bot is not in this guild. Please invite it using <a href="https://discord.com/api/oauth2/authorize?client_id=@Model.ClientId&permissions=1240641956944&scope=bot%20applications.commands">this link</a>
+            The bot is not in this guild. Please invite it using <a href="https://discord.com/api/oauth2/authorize?client_id=@Model.ClientId&permissions=1240641956944&scope=bot%20applications.commands">this link</a> Clicking menu items on the left side might work, but it probably won't
         </div>
     }
     else if(Model.Guild == null)

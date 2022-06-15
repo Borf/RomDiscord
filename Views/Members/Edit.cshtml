@@ -19,6 +19,10 @@
             }
         </select>
     </div>
+        <div class="form-group">
+        <label>Alternative names (space-seperated)</label>
+        <input class="form-control" name="AlternativeNames" value="@Model.Member.AlternativeNames">
+    </div>
     <div class="form-group">
         <label>Discord name</label>
         <select multiple name="Jobs" size="@(Enum.GetValues<Job>().Length)" class="form-control">

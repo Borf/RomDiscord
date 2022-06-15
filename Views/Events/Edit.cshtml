@@ -1,0 +1,103 @@
+﻿@using Discord
+@{
+    @model RomDiscord.Models.Pages.Events.EditModel;
+}
+
+<h1>Editing event @Model.Event.Name</h1>
+
+<form enctype="multipart/form-data" method="post" asp-action="Edit" asp-controller="Events">
+    <div class="form-group">
+        <label>Name</label>
+        <input class="form-control" name="Name" value="@Model.Event.Name">
+    </div>
+    <div class="form-group">
+        <label>Description</label>
+        <textarea class="form-control" name="Description">@Model.Event.Description</textarea>
+    </div>
+    <div class="form-group">
+        <label>Where</label>
+        <input class="form-control" name="Where" value="@Model.Event.Where">
+    </div>
+    <div class="form-check mt-2">
+        <input type="checkbox" class="form-check-input" name="DiscordEvent" value="true" @(Model.Event.DiscordGuildEvent ? "checked=":""))>
+        <label class="form-check-label">Discord Event</label>
+    </div>
+    <div class="form-group">
+        <label>Image</label>
+        <input type="file" class="form-control" name="Image">
+    </div>
+    <div class="form-group">
+        <label>When</label>
+        <input type="datetime-local" class="form-control" name="When" value="@(Model.Event.When.ToString("s"))" />
+    </div>
+    <div class="form-group">
+        <label>Length</label>
+        <div class="input-group">
+            <div class="input-group-prepend"><span class="input-group-text">Hours</span></div><input type="number" class="form-control" name="LengthHours" value="@(Model.Event.Length.Hours + 24 * Model.Event.Length.Days)" />
+            <div class="input-group-append"><span class="input-group-text">Minutes</span></div><input type="number" class="form-control" name="LengthMinutes" value="@Model.Event.Length.Minutes" />
+        </div>
+    </div>
+    <div class="form-check mt-2">
+        <input type="checkbox" class="form-check-input" name="Repeats" value="true" onclick="$('#RepeatBlock').toggle(this.checked)" @(Model.Event.Repeats ? "checked=":"")>
+        <label class="form-check-label">Recurring</label>
+    </div>
+    <div id="RepeatBlock" style="display: @(Model.Event.Repeats ? "block" : "none");">
+        <div class="form-group">
+            <label>How Often</label>
+            <div class="input-group">
+                <div class="input-group-prepend"><span class="input-group-text">Days</span></div><input type="number" class="form-control" name="RepeatDay" value="@Model.Event.RepeatTime.Days" />
+                <div class="input-group-append"><span class="input-group-text">Hours</span></div><input type="number" class="form-control" name="RepeatHours" value="@Model.Event.RepeatTime.Hours" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Ends</label>
+            <input type="datetime-local" class="form-control" name="Ends" value="@(Model.Event.Ends?.ToString("s") ?? "")"/>
+        </div>
+    </div>
+    <div class="form-group mt-2">
+        <input type="submit" value="Update Event" class="form-control btn btn-primary"/>
+    </div>
+</form>
+
+<h1>Manage Discord</h1>
+@if(Model.Channel == null)
+{
+       <span>Discord Channel Not Set</span>
+ }
+else
+{
+    @if(Model.Event.DiscordMessageId == 0)
+    {
+        <span>Discord Message Not Set</span>
+    }
+    else if(await Model.Channel.GetMessageAsync(Model.Event.DiscordMessageId) == null)
+    {
+        <span>Discord Message Not Found</span>
+    }
+    @if (Model.Event.DiscordMessageId == 0 || await Model.Channel.GetMessageAsync(Model.Event.DiscordMessageId) == null)
+    {
+        <form method="post" asp-action="LinkMessage" asp-route-id="@Model.Event.EventId">
+            <div class="form-group">
+                <select class="form-control">
+                    @await foreach (var msg in Model.Channel.GetMessagesAsync(100).Flatten())
+                    {
+                        <!option value="@msg.Id">@msg.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss") @msg.Author.Username ➡ @msg.Content</!option>
+                    }
+                </select>
+                <input type="submit" value="Link Message" class="btn btn-primary">
+            </div>
+        </form>
+        <form method="post" asp-action="CreateMessage" asp-route-id="@Model.Event.EventId">
+            <input type="submit" value="Create Message" class="btn btn-primary">
+        </form>
+    }
+    else
+    {
+        <form method="post" asp-action="DeleteMessage" asp-route-id="@Model.Event.EventId" style="float: right">
+            <input type="submit" value="Delete Message" class="btn btn-danger">
+        </form>
+        <form method="post" asp-action="UpdateMessage" asp-route-id="@Model.Event.EventId">
+            <input type="submit" value="Update Message" class="btn btn-primary">
+        </form>
+    }
+}

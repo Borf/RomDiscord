@@ -10,12 +10,14 @@ namespace RomDiscord.Models.Db
 		public Guild? Guild { get; set; }
 		public string Name { get; set; } = "";
 		public string DiscordName { get; set; } = "";
+		public string AlternativeNames { get; set; } = "";
 		public ulong DiscordId { get; set; }
 		public string Jobs { get; set; } = "";
 		public string? ShortNote { get; set; }
 		public string? LongNote { get; set; }
 		public DateTime? JoinDate { get; set; }
 		public int? PartyId { get; set; }
+		public bool Active { get; set; } = true;
 //		[ForeignKey("PartyId")] 
 //		public Party? Party { get; set; }
 

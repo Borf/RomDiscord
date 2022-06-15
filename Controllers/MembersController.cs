@@ -72,6 +72,7 @@ namespace RomDiscord.Controllers
 				Guild = guild,
 				DiscordId = data.DiscordId,
 				DiscordName = dcUser == null ? "" : (dcUser.Username + "#" + dcUser.Discriminator),
+				AlternativeNames = "",
 				Jobs = "",
 				ShortNote = "",
 				LongNote = "",
@@ -79,6 +80,22 @@ namespace RomDiscord.Controllers
 			await context.SaveChangesAsync();
 			return RedirectToAction("Index");
 		}
+
+		[HttpPost("Left/{memberId}")]
+		public async Task<IActionResult> Left(int memberId, [FromForm] UpdateMemberModel data)
+		{
+			var member = context.Members.First(m => m.MemberId == memberId);
+			var guild = this.Guild(context);
+			if (guild == null)
+				return RedirectToAction("Index", "Home");
+
+			member.Active = false;
+
+			await context.SaveChangesAsync();
+
+			return RedirectToAction("Index");
+		}
+
 
 		[HttpPost("Update/{memberId}")]
 		public async Task<IActionResult> UpdateMember(int memberId, [FromForm]UpdateMemberModel data)
@@ -92,8 +109,9 @@ namespace RomDiscord.Controllers
 			member.ShortNote = data.ShortNote;
 			member.LongNote = data.LongNote;
 			member.JoinDate = data.JoinDate;
+			member.AlternativeNames = data.AlternativeNames ?? "";
 			//member.JobList = data.Jobs;
-			if(data.Jobs != null)
+			if (data.Jobs != null)
 				member.Jobs = String.Join(",", data.Jobs);
 
 			member.DiscordId = data.DiscordId;

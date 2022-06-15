@@ -7,13 +7,14 @@ namespace RomDiscord.Services
 	{
 		public class ScheduledTask
 		{
+			public string Name { get; set; } = "";
 			public DateTime NextRun { get; set; }
 			public TimeSpan? TimeSpan { get; set; } = null;
 			public Action<IServiceProvider> Action { get; set; } = null!;
 		}
 
 		IServiceProvider services;
-		List<ScheduledTask> tasks = new List<ScheduledTask>();
+		public List<ScheduledTask> tasks = new List<ScheduledTask>();
 
 		public TaskScheduler(IServiceProvider services)
 		{
@@ -49,9 +50,9 @@ namespace RomDiscord.Services
 				}
 				else
 					await Task.Delay(10000);
-				tokenSource.TryReset();
+				tokenSource = new CancellationTokenSource(); //eww
 
-				foreach(var t in tasks.ToList())
+				foreach (var t in tasks.ToList())
 				{
 					if(t.NextRun <= DateTime.Now)
 					{
@@ -83,7 +84,8 @@ namespace RomDiscord.Services
 				var getTasks = t.GetMethod("GetTasks");
 				if(getTasks != null)
 				{ 
-					object? v = services.GetService(t);
+					using var scope = services.CreateScope();
+					object? v = scope.ServiceProvider.GetService(t);
 					List<ScheduledTask>? tasks = (List<ScheduledTask>?)getTasks.Invoke(v, null);
 					if(tasks != null)
 						this.tasks.AddRange(tasks);

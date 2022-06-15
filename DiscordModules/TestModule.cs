@@ -6,6 +6,11 @@ namespace RomDiscord.DiscordModules
 {
 	public class TestModule : InteractionModuleBase<SocketInteractionContext>
 	{
+		IServiceProvider services;
+		public TestModule(IServiceProvider services)
+		{
+			this.services = services;
+		}
 
 		[SlashCommand("ping", "Pings the bot")]
 		public Task PingAsync()
@@ -27,10 +32,30 @@ namespace RomDiscord.DiscordModules
 			public string Reason { get; set; } = null!;
 		}
 
+		[SlashCommand("taskdebug", "Debug for borf")]
+		public async Task TaskDebug()
+		{
+			using var scope = services.CreateScope();
+			var scheduler = (RomDiscord.Services.TaskScheduler)services.GetServices<IHostedService>().First(s => (s as RomDiscord.Services.TaskScheduler) != null);
+			string msg = string.Join("\n", scheduler.tasks.Select(t => t.NextRun + " -> " + t.Name));
+			await RespondAsync(msg);
+		}
+
 		[SlashCommand("modal", "Shows a modal")]
 		public async Task ModalAsync()
 		{
 			await RespondWithModalAsync<FoodModal>("food_menu");
+		}
+		[SlashCommand("testembed", "Test stuff")]
+		public async Task TestEmbed()
+		{
+			var eb = new EmbedBuilder();
+			for(int i = 0; i < 1; i++)
+			{
+				string value = string.Join("\n", Enumerable.Repeat("MVP 1 killed by borf", 40));
+				eb.AddField(new EmbedFieldBuilder().WithName("Channel " + i).WithValue(value).WithIsInline(true));
+			}
+			await RespondAsync(null, new Embed[] { eb.Build() } );
 		}
 
 		[SlashCommand("test", "Test stuff")]

@@ -243,5 +243,45 @@ namespace RomDiscord.Services
 			}
 			return eb.Build();
 		}
+
+
+		public List<RomDiscord.Services.TaskScheduler.ScheduledTask> GetTasks()
+		{
+			DateTime nextSunday = DateTime.Now.AddDays((7 - (int)DateTime.Now.DayOfWeek) % 7).Date;
+			nextSunday = nextSunday.AddHours(18);
+			if (nextSunday < DateTime.Now)
+				nextSunday = nextSunday.AddDays(7);
+
+			return new List<RomDiscord.Services.TaskScheduler.ScheduledTask>()
+			{
+				new RomDiscord.Services.TaskScheduler.ScheduledTask()
+				{
+					Name = "God Equip Scheduler",
+					NextRun = nextSunday, //next sunday
+					TimeSpan = TimeSpan.FromDays(7), //every week
+					Action = async (services) =>
+					{
+						Console.WriteLine("Running god raffle task!");
+						using var scope = services.CreateScope();
+						using var context = scope.ServiceProvider.GetRequiredService<Context>();
+						var moduleSettings = scope.ServiceProvider.GetRequiredService<ModuleSettings>();
+						var discord = services.GetRequiredService<DiscordSocketClient>();
+						var godRaffle = scope.ServiceProvider.GetRequiredService<GodEquipRaffle>();
+						var nextWeek = DateTime.Now.AddDays(2);
+						var guilds = context.Guilds.ToList();
+						foreach (var guild in guilds)
+						{
+							if (moduleSettings.GetBool(guild, "godraffle", "enabled", false))
+							{
+								var dcGuild = discord.Guilds.First(g => g.Id == guild.DiscordGuildId);
+								await godRaffle.RaffleWeek(nextWeek, dcGuild);
+								var channel = dcGuild.TextChannels.First(c => c.Id == moduleSettings.GetUlong(guild, "godraffle", "channel"));
+								await channel.SendMessageAsync(null, false, await godRaffle.BuildEmbed(nextWeek, dcGuild, moduleSettings.GetBool(guild, "godraffle", "emoji", true)));
+							}
+						}
+					}
+				}
+			};
+		}
 	}
 }

@@ -1,0 +1,48 @@
+﻿@{
+    @model DateTime;
+}
+
+<h1>Adding event for @Model.Year - @Model.Month - @Model.Day</h1>
+
+<form enctype="multipart/form-data" method="post" asp-action="NewEvent" asp-controller="Events">
+    <div class="form-group">
+        <label>Name</label>
+        <input class="form-control" name="Name" value="">
+    </div>
+    <div class="form-group">
+        <label>Description</label>
+        <input class="form-control" name="Description" value="">
+    </div>
+    <div class="form-check mt-2">
+        <input type="checkbox" class="form-check-input" name="DiscordEvent" value="true">
+        <label class="form-check-label">Discord Event</label>
+    </div>
+    <div class="form-group">
+        <label>Image</label>
+        <input type="file" class="form-control" name="Image">
+    </div>
+    <div class="form-group">
+        <label>When</label>
+        <input type="datetime-local" class="form-control" name="When" value="@(Model.ToString("s"))" />
+    </div>
+    <div class="form-check mt-2">
+        <input type="checkbox" class="form-check-input" name="Repeats" value="true" onclick="$('#RepeatBlock').toggle(this.checked)">
+        <label class="form-check-label">Recurring</label>
+    </div>
+    <div id="RepeatBlock" style="display: none;">
+        <div class="form-group">
+            <label>How Often</label>
+            <div class="input-group">
+                <div class="input-group-prepend"><span class="input-group-text">Days</span></div><input type="number" class="form-control" name="RepeatDay" value="7" />
+                <div class="input-group-append"><span class="input-group-text">Hours</span></div><input type="number" class="form-control" name="RepeatHours" value="0" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Ends</label>
+            <input type="datetime-local" class="form-control" name="Ends"/>
+        </div>
+    </div>
+    <div class="form-group mt-2">
+        <input type="submit" value="Create New Event" class="form-control btn btn-primary"/>
+    </div>
+</form>

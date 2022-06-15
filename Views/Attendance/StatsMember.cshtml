@@ -1,0 +1,33 @@
+﻿@{
+    @model (List<RomDiscord.Models.Db.Attendance>, List<RomDiscord.Models.Db.Member>);
+}
+
+<table class="table table-dark table-striped table-bordered table-sm">
+    <tr>
+        <td>Member</td>
+        @foreach(var attendance in Model.Item1)
+        {
+            <td>@attendance.Date</td>
+        }
+    </tr>
+    @foreach(var member in Model.Item2.Where(m => Model.Item1.Any(a => a.Members.Any(ma => ma.Member == m))).OrderBy(m => m.Name))
+    {
+        <tr>
+            <td>@member.Name</td>
+            @foreach(var attendance in Model.Item1)
+            {
+                <td>@(attendance.Members.Any(ma => ma.Member == member) ? "✅" : "🟥")</td>
+            }
+        </tr>
+    }
+    @foreach(var member in Model.Item2.Where(m => !Model.Item1.Any(a => a.Members.Any(ma => ma.Member == m))).OrderBy(m => m.Name))
+    {
+        <tr>
+            <td>@member.Name</td>
+            @foreach(var attendance in Model.Item1)
+            {
+                <td>@(attendance.Members.Any(ma => ma.Member == member) ? "✅" : "🟥")</td>
+            }
+        </tr>
+    }
+</table>
