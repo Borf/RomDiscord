@@ -1,0 +1,30 @@
+﻿@{
+    @model RomDiscord.Models.Pages.MvpHunt.Index
+    @using RomDiscord.Models.Db;
+}
+<script>
+function UpdateChannel(channel, value)
+{
+    $.postJSON("/MvpHunt/UpdateChannel/" + channel + "/" + value,
+    {
+    }, function (data) {
+        alert(data);
+    });
+}
+</script>
+<h1>Discord Channels</h1>
+<ul class="list-group">
+@foreach(var ch in new List<string>() { "EN1","EN2", "RU1", "RU2", "RU3", "RU4", "ES1", "ES2", "TR1", "PT1", "DE1", "DE2", "FR1", "FR2"})
+{
+    <li class="list-group-item bg-dark text-white">
+        <span style="width: 200px; display: inline-block; line-height: 32px;">@ch</span>
+        <select class="form-input" style="height: 32px;" onchange="UpdateChannel('@ch', this.value)">
+            <option value="0">-</option>
+            @foreach(var channel in Model.Channels)
+            {
+                <!option value="@channel.Id" @(Model.Settings.GetUlong(Model.Guild, "mvphunt", ch) == channel.Id ? "selected" : "")>@channel.Name</!option>
+            }
+        </select>
+    </li>
+}
+</ul>

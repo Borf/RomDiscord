@@ -1,0 +1,55 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Exchange.Index;
+}
+<h1>Exchange Scanner Config</h1>
+<div class="container border border-secondary p-3 mb-3">
+    <h2>Settings</h2>
+    <form asp-action="ChangeSettings" method="post">
+        <div class="form-group">
+            <label>Enabled</label><br/>
+            <input type="checkbox" @(Model.Settings.Enabled ? "checked" : "") class="" name="Enabled" value="true">
+        </div>
+        <div class="form-group">
+            <label>Save</label>
+            <input class="btn btn-primary form-control" type="submit" value="Save" />
+        </div>
+
+    </form>
+</div>
+<div class="container border border-secondary p-3 mb-3">
+    <form method="post" asp-action="AddItem">
+        <select id="addfield" name="ItemId" class="form-control itemListComplete"></select>
+        <select name="ChannelId" class="form-control">
+            @foreach(var channel in Model.Channels.OrderBy(c => c.Position))
+            {
+                <!option value="@channel.Id" @(Model.Settings.LastChannel == channel.Id ? "selected":"")>#@channel.Name</!option>
+            }
+        </select>
+        <input type="submit" class="btn btn-primary form-control" value="Add"/>
+    </form>
+</div>
+
+<div class="container border border-secondary p-3 mb-3">
+    <h2>Exchange notifications</h2>
+    <ul class="list-group">
+    @foreach(var item in Model.PublicNotifications)
+    {
+        <li class="list-group-item">
+            <div class="row">
+                <div class="col">#@Model.Channels.First(ch => ch.Id == item.ChannelId).Name</div>
+                <div class="col">@Model.ItemDb[item.ItemId].NameZh</div>
+            </div>
+        </li>
+    }
+    </ul>
+</div>
+
+<script>
+$(function()
+{
+    setTimeout(function()
+    {
+        $("#addfield").focus();
+    }, 100);
+});
+</script>

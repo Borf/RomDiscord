@@ -155,9 +155,8 @@ namespace RomDiscord.Services
 
 			//build message
 			{
-				var channel = dcGuild.TextChannels.First(c => c.Id == moduleSettings.GetUlong(guild, "godraffle", "channel"));
-
-				await channel.SendMessageAsync(null, false, await BuildEmbed(startDate, dcGuild, settings.Emoji));
+//				var channel = dcGuild.TextChannels.First(c => c.Id == moduleSettings.GetUlong(guild, "godraffle", "channel"));
+//				await channel.SendMessageAsync(null, false, await BuildEmbed(startDate, dcGuild, settings.Emoji));
 
 			}
 		}

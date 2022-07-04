@@ -16,7 +16,8 @@
     <li class="nav-item"><a asp-controller="Events" asp-action="Index" class="nav-link @Html.ActiveClass("Events")" aria-current="page"><span data-feather="calendar"></span>Events</a></li>
     <li class="nav-item"><a href="#" class="nav-link text-secondary" aria-current="page"><span data-feather="box"></span>Items</a></li>
     <li class="nav-item"><a href="#" class="nav-link text-secondary" aria-current="page"><span data-feather="smile"></span>Mobs</a></li>
-    <li class="nav-item"><a href="#" class="nav-link text-secondary" aria-current="page"><span data-feather="dollar-sign"></span>Exchange</a></li>
+    <li class="nav-item"><a asp-controller="MvpHunt" asp-action="Index" class="nav-link @Html.ActiveClass("MvpHunt", "Index")" aria-current="page"><span data-feather="crosshair"></span>MVP Hunters</a></li>
+    <li class="nav-item"><a asp-controller="Exchange" asp-action="Index" class="nav-link @Html.ActiveClass("Exchange", "Index")" aria-current="page"><span data-feather="dollar-sign"></span>Exchange</a></li>
     <hr/>
     <li class="nav-item"><a asp-controller="Members" asp-action="Index" class="nav-link @Html.ActiveClass("Members", "Index")" aria-current="page"><span data-feather="user"></span>Members</a></li>
     @if(Html.ViewContext.RouteData.Values["controller"]?.ToString() == "Members")

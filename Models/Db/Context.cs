@@ -26,6 +26,9 @@ namespace RomDiscord.Models.Db
         public DbSet<AttendanceMember> AttendanceMembers => Set<AttendanceMember>();
         public DbSet<Event> Events => Set<Event>();
         public DbSet<MvpScan> MvpScans => Set<MvpScan>();
+        public DbSet<OccupationScan> OccupationScans => Set<OccupationScan>();
+        public DbSet<ExchangePublicNotification> ExchangePublicNotifications => Set<ExchangePublicNotification>();
+        public DbSet<ExchangeScan> ExchangeScans => Set<ExchangeScan>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
