@@ -3,7 +3,7 @@ using RomDiscord.Models.Db;
 
 namespace RomDiscord.Models.Pages.Events
 {
-    public class Index
+	public class Index
     {
 		public int Year { get; set; }
 		public int Month { get; set; }

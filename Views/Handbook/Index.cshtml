@@ -1,0 +1,40 @@
+﻿@{
+    @model RomDiscord.Models.Pages.Handbook.Index;
+    @using RomDiscord.Util;
+}
+<h1>Handbook Scanning</h1>
+<div class="container border border-secondary p-3 mb-3">
+    <h2>Settings</h2>
+    <form asp-action="ChangeSettings" method="post">
+        <div class="form-group">
+            <label>Enabled</label><br/>
+            <input type="checkbox" @(Model.Settings.Enabled ? "checked" : "") class="" name="Enabled" value="true">
+        </div>
+        <div class="form-group">
+            <label>Channel</label>
+            <select name="Channel" class="form-control custom-select">
+            @foreach(var channel in Model.Channels.Where(c => c is Discord.WebSocket.SocketGuildChannel).OrderBy(c => c.Position))
+            {
+                <!option @(channel.Id == Model.Settings.Channel ? "selected": "") value="@channel.Id">@channel.Name</!option>
+            }
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Save</label>
+            <input class="btn btn-primary form-control" type="submit" value="Save" />
+        </div>
+
+    </form>
+</div>
+<ul class="list-group">
+    @foreach(var member in Model.Members)
+    {
+        <li class="list-group-item bg-dark text-white">
+            <div class="row">
+                <div class="col">@member.Name</div>
+                <div class="col">Never</div>
+                <div class="col">HP</div>
+            </div
+        </li>
+    }
+</ul>

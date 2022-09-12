@@ -48,19 +48,34 @@ namespace RomDiscord.Controllers
 			var guild = this.Guild(context);
 			if (guild == null)
 				return RedirectToAction("Index", "Home");
-
-			settings.Set(guild, "exchange", "lastChannel", ChannelId + "");
-			
-			context.ExchangePublicNotifications.Add(new ExchangePublicNotification()
+			if (ItemId != 0)
 			{
-				ItemId = ItemId,
-				ChannelId = ChannelId,
-				Guild = guild
-			});
-			await context.SaveChangesAsync();
+				await settings.Set(guild, "exchange", "lastChannel", ChannelId + "");
+
+				context.ExchangePublicNotifications.Add(new ExchangePublicNotification()
+				{
+					ItemId = ItemId,
+					ChannelId = ChannelId,
+					Guild = guild
+				});
+				await context.SaveChangesAsync();
+			}
 			return RedirectToAction("Index");
 		}
 
+
+		[HttpPost("ChangeChannel/{notificationId}/{channelId}")]
+		public async Task<IActionResult> ChangeChannel(int notificationId, ulong channelId)
+		{
+			var guild = this.Guild(context);
+			if (guild == null)
+				return RedirectToAction("Index", "Home");
+			var notification = await context.ExchangePublicNotifications.FindAsync(notificationId);
+			if(notification != null)
+				notification.ChannelId = channelId;
+			await context.SaveChangesAsync();
+			return Ok("ok");
+		}
 
 	}
 }

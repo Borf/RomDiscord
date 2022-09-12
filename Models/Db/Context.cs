@@ -28,7 +28,10 @@ namespace RomDiscord.Models.Db
         public DbSet<MvpScan> MvpScans => Set<MvpScan>();
         public DbSet<OccupationScan> OccupationScans => Set<OccupationScan>();
         public DbSet<ExchangePublicNotification> ExchangePublicNotifications => Set<ExchangePublicNotification>();
+        public DbSet<ExchangePrivateNotification> ExchangePrivateNotifications => Set<ExchangePrivateNotification>();
         public DbSet<ExchangeScan> ExchangeScans => Set<ExchangeScan>();
+        public DbSet<ExchangeNotificationMessage> ExchangeNotifications => Set<ExchangeNotificationMessage>();
+        public DbSet<HandbookState> HandbookStates => Set<HandbookState>();
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

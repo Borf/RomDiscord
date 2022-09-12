@@ -22,6 +22,10 @@ namespace RomDiscord.Util
 			return context.Guilds.FirstOrDefault(g => g.DiscordGuildId == controller.HttpContext.SessionData().ActiveGuild.Id);
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 		}
+		public static long ToUnixTimestamp(this DateTime value)
+		{
+			return (long)(value.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))).TotalSeconds;
+		}
 
 
 		public static string Color(this Job cls)

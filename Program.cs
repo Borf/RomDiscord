@@ -51,12 +51,14 @@ builder.Services.AddHostedService<RomDiscord.Services.TaskScheduler>();
 builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
 builder.Services.AddSingleton<InteractionHandler>();
+builder.Services.AddSingleton<CommandService>();
 builder.Services.AddSingleton<ItemDb>();
 builder.Services.AddScoped<GodEquipRaffle>();
 builder.Services.AddScoped<ExchangeService>();
 builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<ModuleSettings>();
 builder.Services.AddScoped<MvpHuntService>();
+builder.Services.AddScoped<HandbookService>();
 //builder.Services.AddSingleton<CommandHandlingService>();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IDistributedCache, DiskCache>();
@@ -131,20 +133,38 @@ using (var context = scope.ServiceProvider.GetRequiredService<Context>())
 
 	await scope.ServiceProvider.GetRequiredService<GodEquipRaffle>().Initialize();
 
-
-	var lumi = client.Guilds.First(g => g.Id == 819438757663997992);
-	var other = await lumi.GetEventAsync(979056899423096922);
-	/*await other.ModifyAsync(e => { 
-		e.Status = GuildScheduledEventStatus.Scheduled; 
-		 });
-	await other.ModifyAsync(e => {
-		e.StartTime = DateTimeOffset.Now.AddMinutes(5);
-	});*/
-	foreach (var e in await lumi.GetEventsAsync())
+	/*
+	foreach (var fileName in Directory.GetFiles("importHandbook"))
 	{
-		Console.WriteLine(e);
-	}
+		using var filestream = new FileStream(fileName, FileMode.Open);
+		var db = JsonSerializer.Deserialize<DbModel>(filestream);
+		string charId = fileName.Substring(fileName.IndexOf("\\") + 1);
+		charId = charId.Substring(0, charId.IndexOf("."));
+		ulong longCharId = ulong.Parse(charId);
+		foreach (var kv in db.Stats)
+		{
+			Console.WriteLine($"{longCharId} at {kv.Key}");
+			foreach (var stat in kv.Value)
+			{
+				Console.WriteLine($"\t{stat.Key} -> {stat.Value}");
+				try
+				{
+					context.HandbookStates.Add(new HandbookState()
+					{
+						Date = DateOnly.Parse(kv.Key),
+						DiscordUserId = longCharId,
+						Stat = Enum.Parse<Stat>(stat.Key),
+						Value = stat.Value
+					});
+					context.SaveChanges();
+				}
+				catch (Exception) { }
+			}
+		}
 
+
+	}
+	*/
 }
 
 
@@ -261,4 +281,14 @@ public partial class Program
 {
 	private static WebApplication app = null!;
 	public static List<WebSocket> sockets = new List<WebSocket>();
+}
+class StatPair
+{
+	public Stat Stat { get; set; }
+	public int value { get; set; }
+}
+class DbModel
+{
+	public string Name { get; set; }
+	public Dictionary<string, Dictionary<string, int>> Stats { get; set; } = new Dictionary<string, Dictionary<string, int>>();
 }

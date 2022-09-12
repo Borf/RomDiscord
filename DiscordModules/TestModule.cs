@@ -12,7 +12,7 @@ namespace RomDiscord.DiscordModules
 			this.services = services;
 		}
 
-		[SlashCommand("ping", "Pings the bot")]
+/*		[SlashCommand("ping", "Pings the bot")]
 		public Task PingAsync()
 			=> Context.Interaction.RespondAsync("pong!");
 
@@ -42,6 +42,7 @@ namespace RomDiscord.DiscordModules
 		}
 
 		[SlashCommand("modal", "Shows a modal")]
+		[EnabledInDm(false)]
 		public async Task ModalAsync()
 		{
 			await RespondWithModalAsync<FoodModal>("food_menu");
@@ -94,6 +95,6 @@ namespace RomDiscord.DiscordModules
 
 			// Respond to the modal.
 			await RespondAsync(message, allowedMentions: mentions, ephemeral: true);
-		}
+		}*/
 	}
 }

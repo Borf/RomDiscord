@@ -21,7 +21,7 @@ namespace RomDiscord.DiscordModules
 		[SlashCommand("agitstatus", "Shows the current status of agits")]
 		public async Task AgitStatusAsync()
 		{
-			await DeferAsync(false);
+			await DeferAsync(true);
 			using var scope = services.CreateScope();
 			var context = scope.ServiceProvider.GetRequiredService<Context>();
 

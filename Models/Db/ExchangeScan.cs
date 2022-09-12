@@ -7,7 +7,7 @@ namespace RomDiscord.Models.Db
 		[Key]
 		public int ExchangeScanId { get; set; }
 		public int ItemId { get; set; }
-		public long Amount { get; set; }
-		public long Price { get; set; }
+		public ulong LastPrice { get; set; }
+		public DateTime? LastSeen { get; set; }
 	}
 }

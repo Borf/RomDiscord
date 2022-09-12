@@ -6,12 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 using RomDiscord.Models.Db;
 using RomDiscord.Models.Rest.Api;
 using RomDiscord.Services;
+using RomDiscord.Util;
 
 namespace RomDiscord.Controllers
 {
 	[Route("api")]
 	[ApiController]
-	public class ApiController : ControllerBase
+	public class ApiController : Controller
 	{
 		private readonly Context context;
 		private readonly MvpHuntService mvpHuntService;
@@ -46,6 +47,7 @@ namespace RomDiscord.Controllers
 				if (s == null)
 				{
 					s = scan;
+					s.MvpScanId = 0;
 					context.MvpScans.Add(s);
 				}
 				else
@@ -66,7 +68,7 @@ namespace RomDiscord.Controllers
 		[HttpPost("OccupationScan")]
 		public async Task<IActionResult> MvpScan([FromBody] List<OccupationScan> data)
 		{
-			string server = "EU";
+//			string server = "EU";
 			List<string> channels = new List<string>();
 
 			foreach (var scan in data)
@@ -75,6 +77,7 @@ namespace RomDiscord.Controllers
 				if (s == null)
 				{
 					s = scan;
+					s.OccupationScanId = 0;
 					context.OccupationScans.Add(s);
 				}
 				else
@@ -105,17 +108,12 @@ namespace RomDiscord.Controllers
 					};
 					context.ExchangeScans.Add(lastScan);
 				}
-				bool changed = false;
-				if (lastScan.Price != scan.price || lastScan.Amount != scan.amount)
-				{
-					Console.WriteLine($"Change for {itemDb[lastScan.ItemId].NameZh}, price from {lastScan.Price} to {scan.price}, amount from {lastScan.Amount} to {scan.amount}");
-					changed = true;
-				}
-				lastScan.Price = scan.price;
-				lastScan.Amount = scan.amount;
-				if (changed)
-					await exchangeService.Update(lastScan);
-				await exchangeService.Status(lastScan);
+				if (scan.Entries.Count > 0)
+					lastScan.LastPrice = scan.Entries[0].price;
+
+				if (scan.Entries.Count > 0)
+					lastScan.LastSeen = DateTime.Now;
+				await exchangeService.Status(scan);
 			}
 			await context.SaveChangesAsync();
 			return Ok("Ok");
@@ -123,7 +121,7 @@ namespace RomDiscord.Controllers
 
 
 		[HttpGet("Items")]
-		public async Task<IActionResult> Search([FromQuery] string q)
+		public IActionResult Search([FromQuery] string q)
 		{
 			if (q.StartsWith("[") && q.Contains("]"))
 				q = q.Substring(q.IndexOf("]")+1).Trim();
@@ -131,6 +129,22 @@ namespace RomDiscord.Controllers
 			return Ok(
 				itemDb.db.Values.Where(i => i.NameZh.ToLower().Contains(q.ToLower()) || i.id.ToString().Contains(q))
 					.Select(i => new { value = i.id, text = $"[{i.id}] {i.NameZh}" })
+					.Take(20)
+					.ToList());
+		}
+
+
+		[HttpGet("Channels")]
+		public IActionResult SearchChannels([FromQuery] string q)
+		{
+			var guild = this.Guild(context);
+			if (guild == null)
+				return Problem("Not authenticated");
+
+
+			return Ok(
+				discord.Guilds.First(g => g.Id == guild.DiscordGuildId).TextChannels.Where(c => c.Name.ToLower().Contains(q.ToLower())).OrderBy(c => c.Position)
+					.Select(i => new { value = i.Id+"", text = i.Name })
 					.Take(20)
 					.ToList());
 		}

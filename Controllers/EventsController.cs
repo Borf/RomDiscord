@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RomDiscord.Models.Db;
 using RomDiscord.Models.Pages.Events;
+using RomDiscord.Models.Pages.HandBook;
 using RomDiscord.Services;
 using RomDiscord.Util;
 
@@ -46,7 +47,7 @@ namespace RomDiscord.Controllers
 				Year = year,
 				Month = month,
 				Events = await context.Events.Where(e => e.Guild == guild && (e.Repeats || (e.When.Month == month && e.When.Year == year))).ToListAsync(),
-				Settings = new SettingsModel(settings, guild),
+				Settings = new Models.Pages.Events.SettingsModel(settings, guild),
 				Channels = discord.Guilds.First(g => g.Id == guild.DiscordGuildId).TextChannels,
 			};
 
@@ -97,7 +98,7 @@ namespace RomDiscord.Controllers
 			var channels = discord.Guilds.First(g => g.Id == guild.DiscordGuildId).TextChannels;
 
 			var e = await context.Events.FirstAsync(e => e.EventId == eventId);
-			var s = new SettingsModel(settings, guild);
+			var s = new Models.Pages.Events.SettingsModel(settings, guild);
 
 			var model = new RomDiscord.Models.Pages.Events.EditModel()
 			{
@@ -152,7 +153,7 @@ namespace RomDiscord.Controllers
 		}
 
 		[HttpPost("ChangeSettings")]
-		public async Task<IActionResult> ChangeSettings([FromForm] SettingsModel data)
+		public async Task<IActionResult> ChangeSettings([FromForm] Models.Pages.Events.SettingsModel data)
 		{
 			var guild = this.Guild(context);
 			if (guild == null)
@@ -172,7 +173,7 @@ namespace RomDiscord.Controllers
 			var channels = discord.Guilds.First(g => g.Id == guild.DiscordGuildId).TextChannels;
 
 			var e = await context.Events.FirstAsync(e => e.EventId == id);
-			var s = new SettingsModel(settings, guild);
+			var s = new Models.Pages.Events.SettingsModel(settings, guild);
 
 			var channel = channels.First(c => c.Id == s.Channel);
 

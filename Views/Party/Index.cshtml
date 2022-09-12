@@ -20,7 +20,10 @@
         float: left;
         width: 150px;
         margin-right: 20px;
+        margin-bottom: 0px;
+        height: 40px;
     }
+
 </style>
 
 <script>
@@ -218,7 +221,7 @@
             <li MemberId="@party.Leader.MemberId" class="list-group-item @bgColor(party.Leader) member" data-toggle="tooltip" title="@(string.Join("", Model.MemberAttendance[party.Leader].Select(a => a ? "✅" : "🟥")))">@party.Leader.Name
             @foreach(var job in party.Leader.JobList)
             {
-                <img src="/img/Jobs/@(job).png" style="height: 22px; float: right;">
+                <img data-toggle="tooltip" src="/img/Jobs/@(job).png" title="@Html.Raw(job.ToString())" style="height: 22px; float: right;">
             }
             </li>
         }
@@ -230,7 +233,7 @@
                 <li MemberId="@member.MemberId" class="list-group-item @bgColor(member) member" data-toggle="tooltip" title="@(string.Join("", Model.MemberAttendance[member].Select(a => a ? "✅" : "🟥")))">@member.Name
                 @foreach(var job in member.JobList)
                 {
-                    <img src="/img/Jobs/@(job).png" style="height: 22px; float: right;">
+                    <img data-toggle="tooltip" src="/img/Jobs/@(job).png" title="@Html.Raw(job.ToString())" style="height: 22px; float: right;">
                 }
                 </li>
             }
@@ -259,7 +262,7 @@
             <!option @(channel.Id == Model.ActiveChannel ? "selected": "") value="@channel.Id">@channel.Name</!option>
         }
         </select>
-        <input class="btn btn-primary" type="submit" class="form-control" value="Post"/>
+        <input class="btn btn-primary form-control" type="submit" value="Post"/>
     </div>
 </div>
 </form>

@@ -43,12 +43,12 @@ namespace RomDiscord.Controllers
 			return View(new RomDiscord.Models.Pages.Party.Index()
 			{
 				LastAttendance = await context.Attendance.Include(a => a.Members).OrderByDescending(a => a.Date).FirstAsync(),
-				Members = await context.Members.Where(m => m.Guild == guild).ToListAsync(),
+				Members = await context.Members.Where(m => m.Guild == guild && m.Active).ToListAsync(),
 				Parties = await context.Parties.Include(p => p.Members).Where(p => p.Guild == guild).ToListAsync(),
 				Channels = discord.Guilds.First(g => g.Id == guild?.DiscordGuildId).Channels,
 				ActiveChannel = settings.GetUlong(guild, "party", "channel"),
 				MemberAttendance = memberAttendance
-			}); 
+			});
 		}
 
 

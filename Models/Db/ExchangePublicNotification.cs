@@ -11,5 +11,6 @@ namespace RomDiscord.Models.Db
 		public Guild Guild { get; set; } = null!;
 		public ulong ChannelId { get; set; }
 		public int ItemId { get; set; }
+		public List<ExchangeNotificationMessage> Messages { get; set; } = new List<ExchangeNotificationMessage>(); 
 	}
 }

@@ -34,10 +34,21 @@
     <ul class="list-group">
     @foreach(var item in Model.PublicNotifications)
     {
-        <li class="list-group-item">
+        <li class="list-group-item bg-dark text-white">
             <div class="row">
-                <div class="col">#@Model.Channels.First(ch => ch.Id == item.ChannelId).Name</div>
-                <div class="col">@Model.ItemDb[item.ItemId].NameZh</div>
+                <div class="col">
+                    @item.ChannelId
+                    <form onsubmit="return changeChannel(@item.ExchangePublicNotificationId, this)">
+                    <select name="ChannelId" class="form-control channelListComplete" placeholder="#@(Model.Channels.FirstOrDefault(c => c.Id == item.ChannelId)?.Name ?? "")">
+@*                        @foreach(var channel in Model.Channels.OrderBy(c => c.Position))
+                        {
+                            <!option value="@channel.Id" @(item.ChannelId == channel.Id ? "selected":"")>#@channel.Name</!option>
+                        }*@
+                    </select>
+                    </form>
+                </div>
+                <div class="col">@(Model.ItemDb.db.ContainsKey(item.ItemId) ? Model.ItemDb[item.ItemId].NameZh : "")</div>
+                <div class="col"><form method="post" asp-action="RemoveNotification" asp-route-itemid="@item.ItemId" asp-route-channelid="@item.ChannelId"><input type="submit" value="Remove" class="btn btn-danger btn-sm"></form></div>
             </div>
         </li>
     }
@@ -45,6 +56,18 @@
 </div>
 
 <script>
+function changeChannel(id, src)
+{
+    console.log($(src).find("input[type='hidden']").val());
+    console.log($(src).find("input[type='hidden']"));
+    $.postJSON("/Exchange/ChangeChannel/" + id + "/" + $(src).find("input[type='hidden']").val(),
+    {
+    }, function (data) {
+        alert(data);
+    });
+    return false;
+}
+
 $(function()
 {
     setTimeout(function()

@@ -247,7 +247,8 @@ namespace RomDiscord.Services
 		public List<RomDiscord.Services.TaskScheduler.ScheduledTask> GetTasks()
 		{
 			DateTime nextSunday = DateTime.Now.AddDays((7 - (int)DateTime.Now.DayOfWeek) % 7).Date;
-			nextSunday = nextSunday.AddHours(18);
+			nextSunday = nextSunday.AddHours(23);
+			nextSunday = nextSunday.AddMinutes(30);
 			if (nextSunday < DateTime.Now)
 				nextSunday = nextSunday.AddDays(7);
 

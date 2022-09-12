@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using RomDiscord.Models.Db;
 using RomDiscord.Models.Pages.Members;
 using RomDiscord.Util;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace RomDiscord.Controllers
 {
@@ -125,6 +127,62 @@ namespace RomDiscord.Controllers
 			await context.SaveChangesAsync();
 
 			return RedirectToAction("Index");
+		}
+
+		[HttpPost("checkjson")]
+		[Produces("text/plain")]
+		public async Task<IActionResult> CheckJson([FromForm] string jsondata)
+		{
+			var guild = this.Guild(context);
+			if (guild == null)
+				return RedirectToAction("Index", "Home");
+			var dc = discord.Guilds.FirstOrDefault(g => g.Id == guild.DiscordGuildId);
+
+			JsonNode json = JsonSerializer.Deserialize<JsonNode>(jsondata);
+
+			List<string> ingameNames = new List<string>();
+			string data = "";
+			data += "Ingame Members: \n";
+			foreach (var member in json["data"]["members"].AsArray())
+			{
+				string name = member["name"].GetValue<string>().Replace("\u0002", "");
+				data += name + "\n";
+				ingameNames.Add(name);
+			}
+			data += "\n\n";
+
+			List<SocketGuildUser> dcMembers = new List<SocketGuildUser>();
+			data += "People with guild-member role: \n";
+			foreach (var dcMember in dc.Roles.First(g => g.Id == 819475701232959528).Members)
+			{
+				data += dcMember.DisplayName + "\n";
+				dcMembers.Add(dcMember);
+			}
+
+			var members = context.Members.Where(m => m.Guild == guild && m.Active).ToList();
+			foreach(var member in members)
+			{
+				if (!ingameNames.Any(n => n == member.Name))
+					data += "Registry: user " + member.Name + " is not found ingame!\n";
+				if (member.DiscordId != 0 && !dcMembers.Any(m => m.Id == member.DiscordId))
+					data += "Registry: user " + member.Name + " does not have the proper role in discord!\n";
+				if (member.DiscordId == 0)
+					data += "Registry: user " + member.Name + " is not on discord\n";
+			}
+
+			foreach(var dcMember in dcMembers)
+			{
+				if (!members.Any(m => m.DiscordId == dcMember.Id))
+					data += "Discord: user " + dcMember.DisplayName + " has guildmember role, but is not in the registry\n";
+			}
+			foreach (var name in ingameNames)
+			{
+				if (!members.Any(m => m.Name == name))
+					data += "Ingame: user " + name + " is in the guild ingame, but is not in the registry\n";
+			}
+
+			return Content(data);
+
 		}
 	}
 }

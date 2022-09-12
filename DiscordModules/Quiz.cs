@@ -27,6 +27,7 @@ namespace RomDiscord.DiscordModules
 		}
 
 		[SlashCommand("quiz", "Starts the quiz")]
+		[EnabledInDm(false)]
 		public async Task Quiz()
 		{
 			quizes[(Context.Channel.Id, Context.Guild.Id)] = new QuizData();
@@ -63,6 +64,7 @@ namespace RomDiscord.DiscordModules
 		}
 
 		[SlashCommand("quizstop", "stops the quiz")]
+		[EnabledInDm(false)]
 		public async Task QuizStop()
 		{
 			if (!quizes.ContainsKey((Context.Channel.Id, Context.Guild.Id)))

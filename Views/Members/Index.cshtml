@@ -104,3 +104,8 @@
     }
     <div style="clear: both"></div>
 </div>
+
+<form method="post" asp-action="checkjson">
+    <textarea name="jsondata" class="form-control">{ "data" : { "members" : [] }}</textarea>
+    <input type="submit" class="btn btn-primary form-control" value="Check" />
+</form>
