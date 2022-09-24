@@ -43,6 +43,7 @@ DiscordSocketConfig _socketConfig = new()
 	GatewayIntents = (GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers) 
 		& ~GatewayIntents.GuildInvites,
 	AlwaysDownloadUsers = true,
+	UseInteractionSnowflakeDate = true,
 //	LogLevel = LogSeverity.Debug
 };
 builder.Services.AddDbContext<Context>();
