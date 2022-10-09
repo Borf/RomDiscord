@@ -98,6 +98,20 @@ namespace RomDiscord.Controllers
 			return RedirectToAction("Index");
 		}
 
+		[HttpPost("Left/{memberId}")]
+		public async Task<IActionResult> Back(int memberId, [FromForm] UpdateMemberModel data)
+		{
+			var member = context.Members.First(m => m.MemberId == memberId);
+			var guild = this.Guild(context);
+			if (guild == null)
+				return RedirectToAction("Index", "Home");
+
+			member.Active = true;
+
+			await context.SaveChangesAsync();
+
+			return RedirectToAction("Index");
+		}
 
 		[HttpPost("Update/{memberId}")]
 		public async Task<IActionResult> UpdateMember(int memberId, [FromForm]UpdateMemberModel data)
