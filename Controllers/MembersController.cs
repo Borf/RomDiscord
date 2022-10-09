@@ -84,7 +84,7 @@ namespace RomDiscord.Controllers
 		}
 
 		[HttpPost("Left/{memberId}")]
-		public async Task<IActionResult> Left(int memberId, [FromForm] UpdateMemberModel data)
+		public async Task<IActionResult> Left(int memberId)
 		{
 			var member = context.Members.First(m => m.MemberId == memberId);
 			var guild = this.Guild(context);
@@ -98,8 +98,8 @@ namespace RomDiscord.Controllers
 			return RedirectToAction("Index");
 		}
 
-		[HttpPost("Left/{memberId}")]
-		public async Task<IActionResult> Back(int memberId, [FromForm] UpdateMemberModel data)
+		[HttpPost("Back/{memberId}")]
+		public async Task<IActionResult> Back(int memberId)
 		{
 			var member = context.Members.First(m => m.MemberId == memberId);
 			var guild = this.Guild(context);
