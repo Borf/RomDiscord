@@ -7,6 +7,8 @@ using RomDiscord.Models.Db;
 using RomDiscord.Models.Rest.Api;
 using RomDiscord.Services;
 using RomDiscord.Util;
+using System;
+using System.Text.Json;
 
 namespace RomDiscord.Controllers
 {
@@ -119,8 +121,16 @@ namespace RomDiscord.Controllers
 			return Ok("Ok");
 		}
 
+        [HttpPost("NewExchangeScan")]
+        public async Task<IActionResult> ExchangeScan([FromBody] Models.Rest.Api.NewExchangeScan data)
+        {
+			//Console.WriteLine(JsonSerializer.Serialize(data));
+            await exchangeService.NewScanResult(data);
+            return Ok("Ok");
+        }
 
-		[HttpGet("Items")]
+
+        [HttpGet("Items")]
 		public IActionResult Search([FromQuery] string q)
 		{
 			if (q.StartsWith("[") && q.Contains("]"))

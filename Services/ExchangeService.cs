@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using RomDiscord.Models.Db;
+using RomDiscord.Models.Rest.Api;
 using RomDiscord.Util;
 
 namespace RomDiscord.Services
@@ -126,10 +127,81 @@ namespace RomDiscord.Services
 			return builder.Build();
 		}
 
+
 		static string FormatPrice(ulong price)
 		{
 			return price.ToString("N0").Replace(",", ".");
 		}
 
-	}
+        internal async Task NewScanResult(NewExchangeScan data)
+        {
+            string itemName = data.ItemId + "";
+            if (itemDb.db.ContainsKey(data.ItemId))
+                itemName = itemDb[data.ItemId].NameZh;
+			if (data.RefineLevel != null && data.RefineLevel != 0)
+				itemName = "+" + data.RefineLevel + " " + itemName;
+
+			Console.WriteLine("Scan result for " + itemName + ", " + data.Amount + " for " + FormatPrice(data.Price) + "z");
+            var notifications = context.ExchangePublicNotifications.Include(epn => epn.Guild).Where(epn => epn.ItemId == data.ItemId || epn.ItemId == 0);
+            foreach (var notification in notifications)
+            {
+				if(notification.ItemId == 0)
+				{
+					if (notification.MinRefineLevel > (data.RefineLevel ?? 0))
+						continue;
+					if(notification.Enchant != Enchant.None || notification.MinEnchantLevel > 0)
+					{
+						if (data.Enchants == null)
+							continue;
+						if (data.Enchants.Count != 4)
+							continue;
+						if ((int)data.Enchants[3].Enchant / 10 != (int)notification.Enchant / 10)
+							continue;
+
+                        if (notification.MinEnchantLevel > (int)data.Enchants[3].Enchant % 10)
+                            continue;
+                    }
+					if (notification.MinRefineLevel == 0 && notification.Enchant == Enchant.None && notification.MinEnchantLevel == 0)
+						continue;
+                }
+
+                var guild = discord.Guilds.First(g => g.Id == notification.Guild.DiscordGuildId);
+                var channel = guild.TextChannels.First(c => c.Id == notification.ChannelId);
+
+                var msg = await channel.SendMessageAsync(null, false, BuildEmbed2(data));
+            }
+
+        }
+
+        private Embed BuildEmbed2(Models.Rest.Api.NewExchangeScan item)
+        {
+			string itemName = item.ItemId + "";
+			if (itemDb.db.ContainsKey(item.ItemId))
+				itemName = itemDb[item.ItemId].NameZh;
+            EmbedBuilder builder = new EmbedBuilder()
+                                .WithColor(Color.Blue)
+                                .WithTitle(itemName + " is now " + FormatPrice(item.Price))
+                                //                        .WithDescription($"{result.amount} availeble for {FormatPrice(result.price)}z")
+                                .WithThumbnailUrl(string.Format("https://borf.github.io/romicons/Items/{0}.png", item.ItemId))
+                                .WithFooter("Last scanned " + item.ScanTime + " by borf")
+                                ;
+            builder.AddField("Price", FormatPrice(item.Price));
+            builder.AddField("Amount", item.Amount + "");
+            if (item.EndTime != 0)
+            {
+                builder.AddField("Snaptime", $"<t:{item.EndTime}:T> <t:{item.EndTime}:R>");
+            }
+			if(item.Enchants != null && item.Enchants.Count > 0)
+			{
+				string enchants = "";
+				foreach (var enchant in item.Enchants)
+					enchants += enchant.Enchant + " " + enchant.Level + "\n";
+				builder.AddField("Enchants", enchants);
+			}
+			if (item.RefineLevel > 0)
+				builder.AddField("Refine level", "+" + item.RefineLevel);
+
+            return builder.Build();
+        }
+    }
 }

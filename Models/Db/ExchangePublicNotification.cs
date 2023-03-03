@@ -11,6 +11,9 @@ namespace RomDiscord.Models.Db
 		public Guild Guild { get; set; } = null!;
 		public ulong ChannelId { get; set; }
 		public int ItemId { get; set; }
-		public List<ExchangeNotificationMessage> Messages { get; set; } = new List<ExchangeNotificationMessage>(); 
+		public Enchant Enchant { get; set; } = Enchant.None;
+		public int MinEnchantLevel { get; set; } = 0;
+        public int MinRefineLevel { get; set; } = 0;
+        public List<ExchangeNotificationMessage> Messages { get; set; } = new List<ExchangeNotificationMessage>(); 
 	}
 }

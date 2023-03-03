@@ -27,8 +27,6 @@ namespace RomDiscord.Services
 
             for (int y = img.Height / 2; y < img.Height; y++)
             {
-                bool lineok = true;
-
                 int lineWidthMin = 0;
                 int lineWidthMax = 0;
                 for (int x = centerX; x < img.Width && lineWidthMax == 0; x++)
@@ -141,7 +139,7 @@ namespace RomDiscord.Services
                         continue;
 
                     if (trimmed.Length == 0 || trimmed.Contains("class b attribute"))
-                        return null;
+                        return new List<HandbookState>();
 
                     var segments = trimmed.Split(" ");
                     for (int i = 0; i < segments.Length; i++)
@@ -166,7 +164,7 @@ namespace RomDiscord.Services
                                         stats.Add(new HandbookState { Date = DateOnly.FromDateTime(DateTime.Now), DiscordUserId = discordUserId, Stat = StatUtil.AsEnum(stat), Value = intValue });
                                     }
                                 }
-                                catch (Exception e)
+                                catch (Exception)
                                 {
                                     error += "Unknown Value: " + line + "\n";
                                     Console.WriteLine("Unknown value: " + line);
@@ -250,9 +248,9 @@ namespace RomDiscord.Services
                 RedirectStandardError = true,
             });
 
-            string data = process.StandardOutput.ReadToEnd();
-            string error = process.StandardError.ReadToEnd();
-            process.WaitForExit();
+            string data = process?.StandardOutput.ReadToEnd() ?? "";
+            string error = process?.StandardError.ReadToEnd() ?? "";
+            process?.WaitForExit();
             data = data.Replace("\r\n", "\n");
             data = data.Trim(new char[] { '\f', '\n', '\r', ' ', '\t' });
 

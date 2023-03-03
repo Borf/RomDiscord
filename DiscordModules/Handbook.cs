@@ -63,7 +63,7 @@ namespace RomDiscord.DiscordModules
                 }
                 catch (Exception e)
                 {
-                    await ReplyAsync("Error reading your picture. please try again with a different one: " + e.InnerException.Message);
+                    await ReplyAsync("Error reading your picture. please try again with a different one: " + (e?.InnerException?.Message ?? ""));
                     break;
                 }
             }

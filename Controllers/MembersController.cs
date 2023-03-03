@@ -152,14 +152,14 @@ namespace RomDiscord.Controllers
 				return RedirectToAction("Index", "Home");
 			var dc = discord.Guilds.FirstOrDefault(g => g.Id == guild.DiscordGuildId);
 
-			JsonNode json = JsonSerializer.Deserialize<JsonNode>(jsondata);
+			JsonNode json = JsonSerializer.Deserialize<JsonNode>(jsondata) ?? new JsonObject();
 
 			List<string> ingameNames = new List<string>();
 			string data = "";
 			data += "Ingame Members: \n";
-			foreach (var member in json["data"]["members"].AsArray())
+			foreach (var member in json?["data"]?["members"]?.AsArray())
 			{
-				string name = member["name"].GetValue<string>().Replace("\u0002", "");
+				string name = member?["name"]?.GetValue<string>()?.Replace("\u0002", "") ?? "";
 				data += name + "\n";
 				ingameNames.Add(name);
 			}
@@ -167,7 +167,7 @@ namespace RomDiscord.Controllers
 
 			List<SocketGuildUser> dcMembers = new List<SocketGuildUser>();
 			data += "People with guild-member role: \n";
-			foreach (var dcMember in dc.Roles.First(g => g.Id == 819475701232959528).Members)
+			foreach (var dcMember in dc?.Roles?.First(g => g.Id == 819475701232959528)?.Members ?? new List<SocketGuildUser>())
 			{
 				data += dcMember.DisplayName + "\n";
 				dcMembers.Add(dcMember);

@@ -5,6 +5,7 @@ using RomDiscord.Models.Db;
 using RomDiscord.Models.Pages.Exchange;
 using RomDiscord.Services;
 using RomDiscord.Util;
+using System.Threading.Channels;
 
 namespace RomDiscord.Controllers
 {
@@ -37,7 +38,7 @@ namespace RomDiscord.Controllers
 				Settings = new SettingsModel(settings, guild),
 				Guild = guild,
 				Channels = dcGuild.TextChannels.OrderBy(c => c.Position).ToList(),
-				PublicNotifications = context.ExchangePublicNotifications.Where(n => n.Guild == guild).ToList().OrderBy(n => n.ChannelId),
+				PublicNotifications = context.ExchangePublicNotifications.Where(n => n.Guild == guild).ToList().GroupBy(g => g.ChannelId, g => g).ToDictionary(g => g.Key, g => g.OrderBy(g => g.ItemId).ToList()),
 				ItemDb = itemDb
 			});
 		}
@@ -48,18 +49,15 @@ namespace RomDiscord.Controllers
 			var guild = this.Guild(context);
 			if (guild == null)
 				return RedirectToAction("Index", "Home");
-			if (ItemId != 0)
-			{
-				await settings.Set(guild, "exchange", "lastChannel", ChannelId + "");
+			await settings.Set(guild, "exchange", "lastChannel", ChannelId + "");
 
-				context.ExchangePublicNotifications.Add(new ExchangePublicNotification()
-				{
-					ItemId = ItemId,
-					ChannelId = ChannelId,
-					Guild = guild
-				});
-				await context.SaveChangesAsync();
-			}
+			context.ExchangePublicNotifications.Add(new ExchangePublicNotification()
+			{
+				ItemId = ItemId,
+				ChannelId = ChannelId,
+				Guild = guild
+			});
+			await context.SaveChangesAsync();
 			return RedirectToAction("Index");
 		}
 
@@ -77,5 +75,30 @@ namespace RomDiscord.Controllers
 			return Ok("ok");
 		}
 
-	}
+		[HttpPost("UpdatePublicNotification")]
+		public async Task<IActionResult> UpdatePublicNotification(int Id, int MinRefineLevel, int Enchant, int MinEnchantLevel, string Action)
+		{
+            var guild = this.Guild(context);
+            if (guild == null)
+                return RedirectToAction("Index", "Home");
+            var notification = await context.ExchangePublicNotifications.FindAsync(Id);
+			if (Action == "Delete")
+			{
+				context.ExchangePublicNotifications.Remove(notification);
+			}
+			else
+			{
+				if (notification != null)
+				{
+					notification.MinRefineLevel = MinRefineLevel;
+					notification.Enchant = (Enchant)Enchant;
+					notification.MinEnchantLevel = MinEnchantLevel;
+				}
+			}
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
+
+    }
 }

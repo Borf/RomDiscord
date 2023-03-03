@@ -32,23 +32,89 @@
 <div class="container border border-secondary p-3 mb-3">
     <h2>Exchange notifications</h2>
     <ul class="list-group">
-    @foreach(var item in Model.PublicNotifications)
+    @foreach(var kv in Model.PublicNotifications)
     {
         <li class="list-group-item bg-dark text-white">
-            <div class="row">
-                <div class="col">
-                    @item.ChannelId
-                    <form onsubmit="return changeChannel(@item.ExchangePublicNotificationId, this)">
-                    <select name="ChannelId" class="form-control channelListComplete" placeholder="#@(Model.Channels.FirstOrDefault(c => c.Id == item.ChannelId)?.Name ?? "")">
-@*                        @foreach(var channel in Model.Channels.OrderBy(c => c.Position))
-                        {
-                            <!option value="@channel.Id" @(item.ChannelId == channel.Id ? "selected":"")>#@channel.Name</!option>
-                        }*@
-                    </select>
-                    </form>
+            <div>
+                <h2>@(Model.Channels.FirstOrDefault(c => c.Id == kv.Key)?.Name ?? kv.Key.ToString())</h2>
+                <div>
+                    @foreach(var item in kv.Value)
+                    {
+                        bool isEquip = true;
+                            if (item.ItemId != 0)
+                                isEquip = new List<int>() { 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300, 310, 320, 510, 511, 512, 513, 514, 515, 520, 530, 540, 800, 810, 830, 840, 850 }.Contains(Model.ItemDb[item.ItemId].Type);
+
+                        <form method="post" asp-action="UpdatePublicNotification">
+                            <input type="hidden" name="Id" value="@item.ExchangePublicNotificationId"/>
+                            <div style="" class="container border rounded m-2 row">
+                                @if (item.ItemId == 0)
+                                { 
+                                    <div class="col">Any</div>
+                                }
+                                else
+                                {
+                                    <div class="col">@Model.ItemDb[item.ItemId].NameZh</div>
+                                }
+                                @if(isEquip)
+                                {
+                                    <div class="col">
+                                        <select name="MinRefineLevel" class="form-control" asp-for="@item.MinRefineLevel">
+                                            <option value="0">Any Refine Level</option>
+                                            @for(var i = 1; i < 16; i++)
+                                                {
+                                                    <option value="@i">At least @i</option>
+                                                }
+                                            </select>
+                                    </div>
+                                    <div class="col">
+                                        <select name="Enchant" class="form-control" asp-for="@item.Enchant">
+                                            <option value="0">Any Enchant</option>
+                                                <option value="500000">With Focus</option>
+                                                <option value="500010">With Morale</option>
+                                                <option value="500020">With Magic</option>
+                                                <option value="500030">With Arch</option>
+                                                <option value="500040">With Sharp</option>
+                                                <option value="500050">With Tenacity</option>
+                                                <option value="500060">With Patience</option>
+                                                <option value="500070">With AntiMage</option>
+                                                <option value="500080">With SharpBlade</option>
+                                                <option value="500090">With Arcane</option>
+                                                <option value="500100">With DivineBlessing</option>
+                                                <option value="500110">With Armor</option>
+                                                <option value="500120">With Zeal</option>
+                                                <option value="500130">With Insight</option>
+                                                <option value="500140">With Blasphemy</option>
+                                                <option value="500150">With ArmorBreaking</option>
+                                                <option value="500160">With AntiMage_</option>
+                                            </select>
+                                    </div>
+                                    <div class="col">
+                                        <select name="MinEnchantLevel" class="form-control" asp-for="@item.MinEnchantLevel">
+                                            <option value="0">Any Enchant Level</option>
+                                            @for(var i = 1; i < 5; i++)
+                                                {
+                                                    <option value="@i">At least @i</option>
+                                                }
+                                            </select>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="col"></div>
+                                    <div class="col"></div>
+                                    <div class="col"></div>
+                                }
+                                <div class="col">
+                                    @if(isEquip)
+                                        {
+                                            <input class="btn btn-primary" type="submit" name="Action" value="Update">
+                                        }
+                                        <input class="btn btn-danger" type="submit" name="Action" value="Delete">
+                                    </div>
+                            </div>
+                        </form>
+                    }
                 </div>
-                <div class="col">@(Model.ItemDb.db.ContainsKey(item.ItemId) ? Model.ItemDb[item.ItemId].NameZh : "")</div>
-                <div class="col"><form method="post" asp-action="RemoveNotification" asp-route-itemid="@item.ItemId" asp-route-channelid="@item.ChannelId"><input type="submit" value="Remove" class="btn btn-danger btn-sm"></form></div>
             </div>
         </li>
     }

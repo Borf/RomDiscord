@@ -290,6 +290,6 @@ class StatPair
 }
 class DbModel
 {
-	public string Name { get; set; }
+	public string Name { get; set; } = String.Empty;
 	public Dictionary<string, Dictionary<string, int>> Stats { get; set; } = new Dictionary<string, Dictionary<string, int>>();
 }

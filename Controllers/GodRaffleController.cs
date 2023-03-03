@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using RomDiscord.Models.Db;
 using RomDiscord.Models.Pages.GodRaffle;
 using RomDiscord.Services;
@@ -182,9 +183,26 @@ namespace RomDiscord.Controllers
 			return Ok("ok");
 		}
 
+        [HttpPost("Increase/{id}")]
+        public async Task<IActionResult> Increase(int id)
+        {
+            var roleBind = context.GodEquipGuild.First(geg => geg.GodEquipGuildBindingId == id);
+            roleBind.Amount++;
+            await context.SaveChangesAsync();
+            return Redirect(Request.Headers["Referer"]);
+        }
+        [HttpPost("Decrease/{id}")]
+        public async Task<IActionResult> Decrease(int id)
+        {
+            var roleBind = context.GodEquipGuild.First(geg => geg.GodEquipGuildBindingId == id);
+            roleBind.Amount--;
+			if (roleBind.Amount <= 0)
+				context.GodEquipGuild.Remove(roleBind);
+            await context.SaveChangesAsync();
+            return Redirect(Request.Headers["Referer"]);
+        }
 
 
 
-
-	}
+    }
 }
