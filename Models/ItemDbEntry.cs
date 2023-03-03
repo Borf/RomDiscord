@@ -31,8 +31,8 @@
 
         public int AdventureSort { get; set; } = 0;
         public int AdventureValue { get; set; } = 0;
-        public List<Buff> AdventureReward { get; set; } = new List<Buff>();
-        public List<Buff> StorageReward { get; set; } = new List<Buff>();
-        public List<RefineStorage> RefineStorageReward { get; set; } = new List<RefineStorage>();
+        //public List<Buff> AdventureReward { get; set; } = new List<Buff>();
+        //public List<Buff> StorageReward { get; set; } = new List<Buff>();
+        //public List<RefineStorage> RefineStorageReward { get; set; } = new List<RefineStorage>();
     }
 }

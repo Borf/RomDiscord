@@ -111,6 +111,8 @@
         Flee = 215,
         CritRes = 219,
         CritDmg = 218,
+        DmgReduc = 414,
+        HealingReceived = 1110,
         HealingIncrease = 1111,
         PhyDmgInc = 420,
         AttackSpeed = 303,

@@ -115,7 +115,7 @@ namespace RomDiscord.Controllers
 
 				if (scan.Entries.Count > 0)
 					lastScan.LastSeen = DateTime.Now;
-				await exchangeService.Status(scan);
+//				await exchangeService.Status(scan);
 			}
 			await context.SaveChangesAsync();
 			return Ok("Ok");
@@ -128,6 +128,13 @@ namespace RomDiscord.Controllers
             await exchangeService.NewScanResult(data);
             return Ok("Ok");
         }
+        [HttpPost("NewExchangeScanAllItems")]
+        public async Task<IActionResult> NewExchangeScanAllItems(List<int> itemsScanned)
+        {
+			await exchangeService.NewScanItemList(itemsScanned);
+            return Ok("Ok");
+        }
+
 
 
         [HttpGet("Items")]

@@ -8,7 +8,8 @@ namespace RomDiscord.Services
 		public Dictionary<int, ItemDbEntry> db = new Dictionary<int, ItemDbEntry>();
 		public ItemDb()
 		{
-			db = JsonSerializer.Deserialize<Dictionary<string, ItemDbEntry>>(File.ReadAllText("items.json"))
+			string data = File.ReadAllText("items.json");
+            db = JsonSerializer.Deserialize<Dictionary<string, ItemDbEntry>>(data)
 				?.ToDictionary(keySelector: kv => int.Parse(kv.Key), elementSelector: kv => kv.Value) ?? new Dictionary<int, ItemDbEntry>();
 
 		}

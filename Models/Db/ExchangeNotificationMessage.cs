@@ -7,10 +7,8 @@ namespace RomDiscord.Models.Db
 		[Key]
 		public int ExchangeNotificationMessageId { get; set; }
 		public ExchangePublicNotification ExchangePublicNotification { get; set; } = null!;
+		public ulong DiscordMessageId { get; set; }
 		public int ItemId { get; set; }
-		public ulong Message { get; set; }
-		public string Enchants { get; set; } = String.Empty;
-		public int RefineLevel { get; set; } = 0;
-		public bool Broken { get; set; }
+		public string Guid { get; set; }
 	}
 }
