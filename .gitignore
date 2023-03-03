@@ -2,3 +2,7 @@ importHandbook
 obj
 bin
 .vs
+/session.txt
+/Database.db-wal
+/Database.db-shm
+/Database.db
