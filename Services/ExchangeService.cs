@@ -239,6 +239,20 @@ namespace RomDiscord.Services
                 }
             }
 
+
+            foreach (var notification in context.ExchangePrivateNotifications.Where(n => n.ItemId == data.ItemId))
+            {
+                if (data.Data.Count > 0)
+                {
+                    var user = await discord.GetUserAsync(notification.DiscordId);
+                    var channel = await user.CreateDMChannelAsync();
+                    await channel.SendMessageAsync(null, false, BuildEmbed2(data, data.Data[0]));
+                }
+                else
+                    Console.WriteLine("Not found!");
+            }
+
+
         }
 
         public async Task NewScanItemList(List<int> itemsScanned)
