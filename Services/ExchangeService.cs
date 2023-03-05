@@ -155,9 +155,13 @@ namespace RomDiscord.Services
 				{
 					if (data.Data.Any(d => d.Guid == message.Guid))
 						continue;
+                    context.ExchangeNotifications.Remove(message);
                     var dcMsg = await channel.GetMessageAsync(message.DiscordMessageId);
-					await channel.DeleteMessageAsync(dcMsg);
-					context.ExchangeNotifications.Remove(message);
+					try
+					{
+						await channel.DeleteMessageAsync(dcMsg);
+					}
+					catch (Exception) { }
                 }
 				await context.SaveChangesAsync();
 
