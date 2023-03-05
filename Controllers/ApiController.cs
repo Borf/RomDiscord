@@ -165,5 +165,12 @@ namespace RomDiscord.Controllers
 					.Take(20)
 					.ToList());
 		}
+
+		[HttpPost("PvpRankings")]
+		public IActionResult PvpRankings([FromBody] PvpData pvpData)
+		{
+			Console.WriteLine(JsonSerializer.Serialize(pvpData, new JsonSerializerOptions() { WriteIndented = true }));
+			return Ok( "ok");
+		}
 	}
 }

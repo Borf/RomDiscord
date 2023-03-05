@@ -9,6 +9,6 @@ namespace RomDiscord.Models.Db
 		public ExchangePublicNotification ExchangePublicNotification { get; set; } = null!;
 		public ulong DiscordMessageId { get; set; }
 		public int ItemId { get; set; }
-		public string Guid { get; set; }
+		public string Guid { get; set; } = "";
 	}
 }

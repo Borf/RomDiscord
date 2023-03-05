@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Distributed;
+using RomDiscord.Controllers;
 using RomDiscord.Models;
 using RomDiscord.Models.Db;
 using RomDiscord.Services;
@@ -116,6 +117,7 @@ using (var context = scope.ServiceProvider.GetRequiredService<Context>())
 	//discord connection
 	var client = app.Services.GetRequiredService<DiscordSocketClient>();
 	client.Log += LogAsync;
+	client.MessageReceived += GameChatController.DiscordMessageReceived;
 	//app.Services.GetRequiredService<CommandService>().Log += LogAsync;
 	await app.Services.GetRequiredService<InteractionHandler>().InitializeAsync();
 	await client.LoginAsync(TokenType.Bot, builder.Configuration["Token"]);
@@ -228,7 +230,10 @@ void OAuthHandler(OAuthOptions options)
 			sessionData.Guilds.Clear();
 			foreach (var guild in guilds.EnumerateArray())
 			{
-				if ((guild.GetProperty("permissions").GetInt32() & ((int)DiscordGuildPermissions.ADMINISTRATOR)) != 0)
+				if ((guild.GetProperty("permissions").GetInt32() & ((int)DiscordGuildPermissions.ADMINISTRATOR)) != 0
+				|| (guild.GetProperty("id").GetString() == "819438757663997992" && user.GetProperty("user").GetProperty("id").GetString() == "702536843694178345") //argonaut
+				|| (guild.GetProperty("id").GetString() == "819438757663997992" && user.GetProperty("user").GetProperty("id").GetString() == "637412901115920395") //bunny
+				)
 				{
 					var guildId = ulong.Parse(guild.GetProperty("id").GetString() ?? "0");
 

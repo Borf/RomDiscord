@@ -220,16 +220,42 @@ namespace RomDiscord.Services
 						{
 							name = "**" + currentDate.DayOfWeek + "-" + nextData.DayOfWeek + "** " + currentDate.Day + "-" + currentDate.Month + " to " + nextData.Day + "-" + nextData.Month;
 						}
-						eb.AddField(new EmbedFieldBuilder()
-							.WithName(name)
-							.WithIsInline(true)
-							.WithValue(val));
-						c++;
-						if (c % 2 == 1)
+						List<string> vals = new List<string>() { val };
+
+						if(val.Length > 1024)
+						{
+							vals.Clear();
+							var lines = val.Split("\n");
+							int start = 0;
+							int count = 1;
+							while(start+count < lines.Length)
+							{
+                                if (string.Join("\n", lines.Skip(start).Take(count)).Length > 1024)
+								{
+									vals.Add(string.Join("\n", lines.Skip(start).Take(count - 1)));
+									start += (count - 1);
+									count = 0;
+								}
+								count++;
+							}
+                            vals.Add(string.Join("\n", lines.Skip(start).Take(count - 1)));
+
+                        }
+
+
+                        foreach (var v in vals)
+						{
 							eb.AddField(new EmbedFieldBuilder()
-								.WithName("\u200B")
+								.WithName(name)
 								.WithIsInline(true)
-								.WithValue("\u200B"));
+								.WithValue(v));
+							c++;
+							if (c % 2 == 1)
+								eb.AddField(new EmbedFieldBuilder()
+									.WithName("\u200B")
+									.WithIsInline(true)
+									.WithValue("\u200B"));
+						}
 					}
 					currentDate = currentDate.AddDays(len);
 					i += len;

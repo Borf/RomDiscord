@@ -143,7 +143,7 @@ namespace RomDiscord.Services
             string itemName = data.ItemId + "";
             if (itemDb.db.ContainsKey(data.ItemId))
                 itemName = itemDb[data.ItemId].NameZh;
-
+			Console.WriteLine("Got an update for " + itemName);
             var notifications = context.ExchangePublicNotifications.Include(epn => epn.Guild).Include(epm => epm.Messages).Where(epn => epn.ItemId == data.ItemId || epn.ItemId == 0).ToList();
             foreach (var notification in notifications)
 			{
@@ -166,7 +166,11 @@ namespace RomDiscord.Services
                     foreach (var message in messages)
                     {
                         var dcMsg = await channel.GetMessageAsync(message.DiscordMessageId);
-                        await channel.DeleteMessageAsync(dcMsg);
+						try
+						{
+							await channel?.DeleteMessageAsync(dcMsg);
+						}
+						catch (Exception) { }
                         context.ExchangeNotifications.Remove(message);
                     }
                     await context.SaveChangesAsync();
@@ -223,8 +227,8 @@ namespace RomDiscord.Services
 							if (notification.MinEnchantLevel > (int)item.Enchants[3].Enchant % 10)
 								continue;
 						}
-						//if (notification.MinRefineLevel == 0 && notification.Enchant == Enchant.None && notification.MinEnchantLevel == 0)
-						//	continue;
+						if (notification.MinRefineLevel == 0 && notification.Enchant == Enchant.None && notification.MinEnchantLevel == 0)
+							continue;
 					}
 
 					var msg = await channel.SendMessageAsync(null, false, BuildEmbed2(data, item));
@@ -334,21 +338,22 @@ namespace RomDiscord.Services
 				case Enchant.Hit:					return "Hit +" +				(enchant.Level / 1.0);
 				case Enchant.Critical:				return "Critical +" +			(enchant.Level / 1.0);
 				case Enchant.Flee:					return "Flee +" +				(enchant.Level / 1.0);
-				case Enchant.CritRes:				return "Crit.Res" +				(enchant.Level / 1.0);
-				case Enchant.CritDmg:				return "Crit.Dmg +" +			(enchant.Level / 1.0) + "%";
+				case Enchant.CritDef:				return "Crit.Def +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.CritDmg:				return "Crit.Dmg +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.CritRes:				return "Crit.Res +" +			(enchant.Level / 1.0);
 				case Enchant.HealingReceived:		return "Healing Received +" +	(enchant.Level / 10.0) + "%";
 				case Enchant.HealingIncrease:		return "Healing Increase +" +	(enchant.Level / 10.0) + "%";
 				case Enchant.PhyDmgInc:				return "Phy. Dmg Inc +" +		(enchant.Level / 10.0) + "%";
 				case Enchant.AttackSpeed:			return "Attack Spd +" +			(enchant.Level / 10.0) + "%";
-				case Enchant.SilenceRes:			return "Silence Res " +			(enchant.Level / 10.0) + "%";
-				case Enchant.FreezeRes:				return "Freeze Res " +			(enchant.Level / 10.0) + "%";
-				case Enchant.StoneRes:				return "Stone Res " +			(enchant.Level / 10.0) + "%";
-				case Enchant.StunRes:				return "Stun Res " +			(enchant.Level / 10.0) + "%";
-				case Enchant.BlindRes:				return "Blind Res " +			(enchant.Level / 10.0) + "%";
-				case Enchant.PoisonRes:				return "Poison Res " +			(enchant.Level / 10.0) + "%";
-				case Enchant.SnareRes:				return "Snare Res " +			(enchant.Level / 10.0) + "%";
-				case Enchant.FearRes:				return "Fear Res " +			(enchant.Level / 10.0) + "%";
-				case Enchant.CurseRes:				return "Curse Res " +			(enchant.Level / 10.0) + "%";
+				case Enchant.SilenceRes:			return "Silence Res +" +		(enchant.Level / 10.0) + "%";
+				case Enchant.FreezeRes:				return "Freeze Res +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.StoneRes:				return "Stone Res +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.StunRes:				return "Stun Res +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.BlindRes:				return "Blind Res +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.PoisonRes:				return "Poison Res +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.SnareRes:				return "Snare Res +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.FearRes:				return "Fear Res +" +			(enchant.Level / 10.0) + "%";
+				case Enchant.CurseRes:				return "Curse Res +" +			(enchant.Level / 10.0) + "%";
 				case Enchant.DmgReduc:				return "Dmg Reduc +" +			(enchant.Level / 10.0) + "%";
 
 

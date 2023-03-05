@@ -1,0 +1,28 @@
+﻿@{
+    @model RomDiscord.Models.Pages.MvpHunt.Index
+    @using RomDiscord.Models.Db;
+}
+<script>
+function UpdateChannel(value)
+{
+    $.postJSON("/GameChat/UpdateChannel/" + value,
+    {
+    }, function (data) {
+        alert(data);
+    });
+}
+</script>
+<h1>Discord Channel</h1>
+<ul class="list-group">
+<li class="list-group-item bg-dark text-white">
+    <select class="form-input" style="height: 32px;" onchange="UpdateChannel(this.value)">
+        <option value="0">-</option>
+        @foreach(var channel in Model.Channels)
+        {
+            <!option value="@channel.Id" @(Model.Settings.GetUlong(Model.Guild, "gamechat", "channel") == channel.Id ? "selected" : "")>@channel.Name</!option>
+        }
+    </select>
+</li>
+</ul>
+
+<span>Link: http://romdiscord.borf.nl/gamechat/ws/@Model.Guild.GuildId</span>
