@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using Humanizer;
 using RomDiscord.Models.Db;
+using System.Text.Json;
 
 namespace RomDiscord.Services
 {
@@ -76,27 +77,31 @@ namespace RomDiscord.Services
 			this.discord = discord;
 		}
 
-		public async Task UpdateChannel(string server, List<string> channels)
+		public async Task Update()
 		{
-			foreach (var channel in channels)
-			{
-				Console.WriteLine($"Updating MVP hunt for {channel}");
-				var lastTime = context.MvpScans.Where(mvp => mvp.MvpId < 200000 && mvp.Channel == channel).Max(mvp => mvp.ScanTime);
-				var mvps = context.MvpScans.Where(mvp => mvp.MvpId < 200000 && mvp.Channel == channel && mvp.ScanTime == lastTime).OrderBy(mvp => mvp.MvpId).ToList();
-				if (mvps.Count == 0)
-					continue;
+			var httpClient = new HttpClient();
+			var lastScan = await httpClient.GetAsync("http://romapi.borf.nl/eu/MvpHunt/LastRound");
+			var scanResult = JsonSerializer.Deserialize<List<Models.Rest.Api.MvpScan>>(await lastScan.Content.ReadAsStringAsync());
+			await UpdateChannel(scanResult);
+		}
 
-				var msg = "MVPs for " + mvps.First().ScanTime + "```\n";
+		public async Task UpdateChannel(List<Models.Rest.Api.MvpScan> mvpScan)
+		{
+			foreach (var channel in mvpScan.Select(s => s.channel).Distinct())
+			{
+				var mvps = mvpScan.Where(m => m.channel == channel).OrderBy(m => m.id).ToList();
+
+				var msg = "MVPs for " + mvps.First().channel + "```\n";
 				for (int i = 0; i < mvps.Count; i += 3)
 				{
 					for (int col = 0; col < 3 && i + col < mvps.Count; col++)
-						msg += ($"📛{(mobNames.ContainsKey(mvps[i + col].MvpId) ? mobNames[mvps[i + col].MvpId] : mvps[i + col].MvpId)}").PadRight(17);
+						msg += ($"📛{(mobNames.ContainsKey(mvps[i + col].id) ? mobNames[mvps[i + col].id] : mvps[i + col].id)}").PadRight(17);
 					msg = msg.TrimEnd() + "\n";
 					for (int col = 0; col < 3 && i + col < mvps.Count; col++)
-						msg += ($"🔪{mvps[i + col].CharName}").PadRight(17);
+						msg += ($"🔪{mvps[i + col].lastKiller}").PadRight(17);
 					msg = msg.TrimEnd() + "\n";
 					for (int col = 0; col < 3 && i + col < mvps.Count; col++)
-						msg += ($"💓{TimeSpan.FromSeconds(mvps[i + col].AliveTime).Humanize()}").PadRight(17);
+						msg += ($"💓{TimeSpan.FromSeconds(mvps[i + col].dieTime - mvps[i + col].summonTime).Humanize()}").PadRight(17);
 					msg = msg.TrimEnd() + "\n";
 					msg += "\n";
 					if (msg.Length > 1800)
@@ -105,12 +110,10 @@ namespace RomDiscord.Services
 				msg += "```";
 
 				string summary = "MVP Hunter Routes\n\n";
-				foreach (var hunter in mvps.Select(mvp => mvp.CharName).Distinct())
+				foreach (var hunter in mvps.Select(mvp => mvp.lastKiller).Distinct())
 				{
-					var hunted = mvps.Where(mvp => mvp.CharName == hunter).OrderBy(mvp => mvp.AliveTime).Select(mvp => "`" + (mobNames.ContainsKey(mvp.MvpId) ? mobNames[mvp.MvpId] : (mvp.MvpId + "")) + "`").ToList();
+					var hunted = mvps.Where(mvp => mvp.lastKiller == hunter).OrderBy(mvp => mvp.dieTime).Select(mvp => "`" + (mobNames.ContainsKey(mvp.id) ? mobNames[mvp.id] : (mvp.id + "")) + "`").ToList();
 					summary += "**" + hunter + "** -> " + String.Join(" -> ", hunted) + "\n";
-
-
 				}
 
 
@@ -125,13 +128,13 @@ namespace RomDiscord.Services
 
 					var dcChannel = discord.Guilds.First(g => g.Id == guild.DiscordGuildId).TextChannels.First(c => c.Id == channelId);
 
-					if (scanTime != (ulong)mvps.First().ScanTime.Ticks || scanMessage == 0)
+					if (scanTime != (ulong)mvps.First().roundTime.Ticks || scanMessage == 0)
 					{
 						scanMessage = (await dcChannel.SendMessageAsync(msg)).Id;
 						scanSummary = (await dcChannel.SendMessageAsync(summary)).Id;
 						await moduleSettings.Set(guild, "mvphunt", "msg_" + channel, scanMessage + "");
 						await moduleSettings.Set(guild, "mvphunt", "sum_" + channel, scanSummary + "");
-						await moduleSettings.Set(guild, "mvphunt", "time_" + channel, mvps.First().ScanTime.Ticks + "");
+						await moduleSettings.Set(guild, "mvphunt", "time_" + channel, mvps.First().roundTime.Ticks + "");
 					}
 					else
 					{

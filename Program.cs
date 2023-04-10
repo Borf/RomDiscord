@@ -53,6 +53,7 @@ builder.Services.AddHostedService<RomDiscord.Services.TaskScheduler>();
 builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
 builder.Services.AddSingleton<InteractionHandler>();
+builder.Services.AddSingleton<ApiService>();
 builder.Services.AddSingleton<CommandService>();
 builder.Services.AddSingleton<ItemDb>();
 builder.Services.AddScoped<GodEquipRaffle>();
@@ -113,9 +114,9 @@ using (var context = scope.ServiceProvider.GetRequiredService<Context>())
 		);
 		await context.SaveChangesAsync();
 	}
-
-	//discord connection
-	var client = app.Services.GetRequiredService<DiscordSocketClient>();
+	app.Services.GetRequiredService<ApiService>();
+    //discord connection
+    var client = app.Services.GetRequiredService<DiscordSocketClient>();
 	client.Log += LogAsync;
 	client.MessageReceived += GameChatController.DiscordMessageReceived;
 	//app.Services.GetRequiredService<CommandService>().Log += LogAsync;
@@ -135,8 +136,9 @@ using (var context = scope.ServiceProvider.GetRequiredService<Context>())
 
 
 	await scope.ServiceProvider.GetRequiredService<GodEquipRaffle>().Initialize();
+    await scope.ServiceProvider.GetRequiredService<MvpHuntService>().Update();
 
-	/*
+    /*
 	foreach (var fileName in Directory.GetFiles("importHandbook"))
 	{
 		using var filestream = new FileStream(fileName, FileMode.Open);

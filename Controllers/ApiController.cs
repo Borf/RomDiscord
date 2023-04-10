@@ -3,11 +3,14 @@ using Discord.WebSocket;
 using Humanizer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Configuration;
 using RomDiscord.Models.Db;
 using RomDiscord.Models.Rest.Api;
 using RomDiscord.Services;
 using RomDiscord.Util;
 using System;
+using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 
 namespace RomDiscord.Controllers
@@ -36,65 +39,6 @@ namespace RomDiscord.Controllers
 		{
 			return Ok("ok!");
 		}
-
-		[HttpPost("MvpScan")]
-		public async Task<IActionResult> MvpScan([FromBody] List<MvpScan> data)
-		{
-			string server = "EU";
-			List<string> channels = new List<string>();
-
-			foreach (var scan in data)
-			{
-				var s = context.MvpScans.FirstOrDefault(s => s.ScanTime == scan.ScanTime && s.MvpId == scan.MvpId && s.Channel == scan.Channel);
-				if (s == null)
-				{
-					s = scan;
-					s.MvpScanId = 0;
-					context.MvpScans.Add(s);
-				}
-				else
-				{
-					s.CharName = scan.CharName;
-					s.AliveTime = scan.AliveTime;
-				}
-				if(!channels.Contains(s.Channel))
-					channels.Add(s.Channel);
-			}
-			await context.SaveChangesAsync();
-
-			await mvpHuntService.UpdateChannel(server, channels);
-			return Ok("Ok");
-		}
-
-
-		[HttpPost("OccupationScan")]
-		public async Task<IActionResult> MvpScan([FromBody] List<OccupationScan> data)
-		{
-//			string server = "EU";
-			List<string> channels = new List<string>();
-
-			foreach (var scan in data)
-			{
-				var s = context.OccupationScans.FirstOrDefault(s => s.ScanTime == scan.ScanTime && s.CastleId == scan.CastleId && s.Channel == scan.Channel);
-				if (s == null)
-				{
-					s = scan;
-					s.OccupationScanId = 0;
-					context.OccupationScans.Add(s);
-				}
-				else
-				{
-					s.GuildName = scan.GuildName;
-					s.LeaderName = scan.LeaderName;
-					s.MemberCount = scan.MemberCount;
-				}
-				if (!channels.Contains(s.Channel))
-					channels.Add(s.Channel);
-			}
-			await context.SaveChangesAsync();
-			return Ok("Ok");
-		}
-
 
 		[HttpPost("ExchangeScan")]
 		public async Task<IActionResult> ExchangeScan([FromBody] List<Models.Rest.Api.ExchangeScan> data)
@@ -172,5 +116,66 @@ namespace RomDiscord.Controllers
 			Console.WriteLine(JsonSerializer.Serialize(pvpData, new JsonSerializerOptions() { WriteIndented = true }));
 			return Ok( "ok");
 		}
-	}
+
+
+		[HttpPost("searchchars/{q}")]
+		public async Task<IActionResult> FriendSearchQuery(string q)
+		{
+			foreach(var socket in sockets)
+			{
+				tcs = new TaskCompletionSource<FriendFindData>();
+				await socket.SendAsync(System.Text.Encoding.UTF8.GetBytes(q), WebSocketMessageType.Text, true, CancellationToken.None);
+				var res = await tcs.Task;
+				return Ok(res);
+			}
+			return Ok("Ok");
+		}
+
+
+
+        [HttpGet("friendsearch")]
+        public async Task FriendSearch()
+        {
+            if (HttpContext.WebSockets.IsWebSocketRequest)
+            {
+                using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+                await Echo(webSocket, context);
+            }
+            else
+            {
+                Console.WriteLine("Not a websocket connection...");
+                HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            }
+        }
+
+        public static List<WebSocket> sockets = new List<WebSocket>();
+        static async Task Echo(WebSocket webSocket, Context context)
+        {
+            Console.WriteLine("Got a websocket!");
+            WebSocketReceiveResult? result = null;
+            var buffer = new byte[1024 * 48];
+            sockets.Add(webSocket);
+            while (true)
+            {
+                try
+                {
+                    result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    if (result.CloseStatus.HasValue)
+                        break;
+                    //await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
+                    tcs.SetResult(JsonSerializer.Deserialize<FriendFindData>(System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count)));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    break;
+                }
+            }
+            sockets.Remove(webSocket);
+            if (result != null)
+                await webSocket.CloseAsync(result?.CloseStatus ?? WebSocketCloseStatus.NormalClosure, result?.CloseStatusDescription, CancellationToken.None);
+        }
+
+		public static TaskCompletionSource<FriendFindData>? tcs;
+    }
 }

@@ -23,6 +23,7 @@ namespace RomDiscord.DiscordModules
 		[Command("ImageUpload")]
 		public async Task ImageUpload()
 		{
+            return; // until fixed
 			if (Context.Message.Attachments.Count == 0)
 				return;
 			using var scope = services.CreateScope();
