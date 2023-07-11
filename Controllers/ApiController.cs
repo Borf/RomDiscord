@@ -187,7 +187,7 @@ namespace RomDiscord.Controllers
                         List<object> newRolls = new();
                         foreach (var roll in rolls)
                         {
-                            var ign = context.Members.FirstOrDefault(m => m.Guild == guild && m.DiscordId == roll.UserId);
+                            var ign = context.Members.FirstOrDefault(m => m.Guild == guild && m.DiscordId == roll.UserId)?.Name;
 
                             newRolls.Add(new
                             {
