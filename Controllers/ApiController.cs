@@ -196,7 +196,7 @@ namespace RomDiscord.Controllers
                                 Ign = ign
                             });
                         }
-                        return Ok(newRolls);
+                        return Ok(new { RollId = rolls.First().GodEquipRollId, Rolls = newRolls });
                     }
                     currentDate = currentDate.AddDays(len);
                     i += len;
