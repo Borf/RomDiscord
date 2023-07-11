@@ -133,10 +133,6 @@ namespace RomDiscord.Controllers
                         {
                             await webSocket.SendAsync(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { Chat = "Chat", Message = "Hello. How can I help?" })), WebSocketMessageType.Text, true, CancellationToken.None);
                         }
-
-
-
-                        await webSocket.SendAsync(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { Chat = "Chat", Message="Hi" })), WebSocketMessageType.Text, true, CancellationToken.None);
                     }
                     else
                     {
