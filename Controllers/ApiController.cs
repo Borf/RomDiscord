@@ -198,6 +198,8 @@ namespace RomDiscord.Controllers
                         }
                         return Ok(newRolls);
                     }
+                    currentDate = currentDate.AddDays(len);
+                    i += len;
                 }
                 else
                 {
