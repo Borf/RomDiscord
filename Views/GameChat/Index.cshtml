@@ -15,7 +15,8 @@ function UpdateChannel(value)
 <h1>Discord Channel</h1>
 <ul class="list-group">
 <li class="list-group-item bg-dark text-white">
-    <select class="form-input" style="height: 32px;" onchange="UpdateChannel(this.value)">
+    <label>Channel</label>
+    <select class="form-control" style="height: 32px;" onchange="UpdateChannel(this.value)">
         <option value="0">-</option>
         @foreach(var channel in Model.Channels)
         {
@@ -23,6 +24,21 @@ function UpdateChannel(value)
         }
     </select>
 </li>
+    <form asp-action="Update" method="post">
+
+
+    <li class="list-group-item bg-dark text-white">
+        <label>url</label>
+        <input name="url" class="form-control" value="@Model.Settings.Get(Model.Guild, "GameChat", "url")" />
+    </li>
+    <li class="list-group-item bg-dark text-white">
+        <label>admin IDs (, seperated)</label>
+        <input name="admins" class="form-control" value="@Model.Settings.Get(Model.Guild, "GameChat", "admins")" />
+    </li>
+    <li class="list-group-item bg-dark text-white">
+        <input class="btn form-control btn-primary" type="submit" value="Update" />
+    </li>
+    </form>
 </ul>
 
 <span>Link: http://romdiscord.borf.nl/gamechat/ws/@Model.Guild.GuildId</span>

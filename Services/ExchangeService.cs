@@ -143,7 +143,7 @@ namespace RomDiscord.Services
             string itemName = data.ItemId + "";
             if (itemDb.db.ContainsKey(data.ItemId))
                 itemName = itemDb[data.ItemId].NameZh;
-			Console.WriteLine("Got an update for " + itemName);
+			//Console.WriteLine("Got an update for " + itemName);
             var notifications = context.ExchangePublicNotifications.Include(epn => epn.Guild).Include(epm => epm.Messages).Where(epn => epn.ItemId == data.ItemId || epn.ItemId == 0).ToList();
             foreach (var notification in notifications)
 			{
@@ -203,7 +203,7 @@ namespace RomDiscord.Services
 						var dcMsg = await channel.GetMessageAsync(message.DiscordMessageId);
 						if (dcMsg != null) //if there's already a discord message for this filter, with the same guid, then I don't think we need to recheck the filters. Gotta make sure the guids are unique though and persistent
 						{
-							var task = channel.ModifyMessageAsync(message.DiscordMessageId, c => c.Embed = BuildEmbed2(data, item));
+							//var task = channel.ModifyMessageAsync(message.DiscordMessageId, c => c.Embed = BuildEmbed2(data, item));
                             Console.WriteLine("Done Updating..." + itemName);
                             continue;
 						}

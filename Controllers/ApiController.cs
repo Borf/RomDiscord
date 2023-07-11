@@ -3,8 +3,10 @@ using Discord.WebSocket;
 using Humanizer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NuGet.Configuration;
 using RomDiscord.Models.Db;
+using RomDiscord.Models.Pages.GodRaffle;
 using RomDiscord.Models.Rest.Api;
 using RomDiscord.Services;
 using RomDiscord.Util;
@@ -24,14 +26,16 @@ namespace RomDiscord.Controllers
 		private readonly DiscordSocketClient discord;
 		private readonly ExchangeService exchangeService;
 		private readonly ItemDb itemDb;
+        private readonly ModuleSettings moduleSettings;
 
-		public ApiController(Context context, MvpHuntService mvpHuntService, DiscordSocketClient discord, ExchangeService exchangeService, ItemDb itemDb)
+        public ApiController(Context context, MvpHuntService mvpHuntService, DiscordSocketClient discord, ExchangeService exchangeService, ItemDb itemDb, ModuleSettings settings)
 		{
 			this.context = context;
 			this.mvpHuntService = mvpHuntService;
 			this.discord = discord;
 			this.exchangeService = exchangeService;
 			this.itemDb = itemDb;
+            this.moduleSettings = settings;
 		}
 
 		[HttpGet("test")]
@@ -147,6 +151,66 @@ namespace RomDiscord.Controllers
                 HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             }
         }
+
+        [HttpGet("Raffle/{guildid}")]
+        public async Task<IActionResult> Raffle(int guildid)
+        {
+            var startDate = DateTime.Now.AddDays(-((int)DateTime.Now.DayOfWeek - (int)DayOfWeek.Monday));
+            var guild = context.Guilds.First(g => g.GuildId == guildid);
+            SettingsModel settings = new SettingsModel(moduleSettings, guild);
+
+            EmbedBuilder eb = new EmbedBuilder()
+                .WithTitle("God Equip")
+                .WithImageUrl("https://cdn.discordapp.com/attachments/819834309489590322/917802629155930152/GodRaffleFooter.png")
+                .WithColor(9021952)
+                .WithDescription("This is the god equipment for week of " + startDate.Date.ToString("D"))
+                .WithFooter(new EmbedFooterBuilder().WithText("").WithIconUrl("https://cdn.discordapp.com/emojis/736643099274641419.png"));
+            var currentDate = startDate;
+            int c = 0;
+            int rollAmountIndex = 0;
+            int i = 0;
+            while (i < 7)
+            {
+                if (settings.DaysEnabled.Contains(i))
+                {
+                    int len = settings.RollLengths[rollAmountIndex % settings.RollLengths.Count];
+                    rollAmountIndex++;
+
+                    string val = "";
+                    var rolls = await context.GodEquipRolls.Where(r => r.GodEquip.Guild == guild && r.Date == DateOnly.FromDateTime(currentDate)).Include(r => r.GodEquip.GodEquip).ToListAsync();
+
+                    var nextData = currentDate.AddDays(len);
+
+                    if (DateTime.Now >= currentDate && DateTime.Now <= nextData)
+                    {
+                        string lastName = "";
+                        List<object> newRolls = new();
+                        foreach (var roll in rolls)
+                        {
+                            var ign = context.Members.FirstOrDefault(m => m.Guild == guild && m.DiscordId == roll.UserId);
+
+                            newRolls.Add(new
+                            {
+                                Equip = roll.GodEquip.GodEquip.Name,
+                                DiscordId = roll.UserId.ToString(),
+                                Ign = ign
+                            });
+                        }
+                        return Ok(newRolls);
+                    }
+                }
+                else
+                {
+                    currentDate = currentDate.AddDays(1);
+                    i++;
+                }
+            }
+            //var startDate = DateTime.Now.AddDays(-((int)startDate.DayOfWeek - (int)DayOfWeek.Monday));
+
+            //var rolls = await context.GodEquipRolls.Where(r => r.GodEquip.Guild.GuildId == guildid && r.Date == DateOnly.FromDateTime(startDate)).Include(r => r.GodEquip.GodEquip).ToListAsync();
+            return Ok("");
+        }
+
 
         public static List<WebSocket> sockets = new List<WebSocket>();
         static async Task Echo(WebSocket webSocket, Context context)

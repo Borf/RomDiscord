@@ -12,10 +12,11 @@ namespace RomDiscord.DiscordModules
 	public class ExchangeModule : InteractionModuleBase<SocketInteractionContext>
 	{
 		IServiceProvider services;
-
-		public ExchangeModule(IServiceProvider services)
+		ItemDb itemDb;
+		public ExchangeModule(IServiceProvider services, ItemDb itemDb)
 		{
 			this.services = services;
+			this.itemDb = itemDb;
 		}
 
 		[SlashCommand("addnotification", "Adds a notification")]
@@ -39,14 +40,15 @@ namespace RomDiscord.DiscordModules
 				await context.SaveChangesAsync();
 			}
 		}
-		[SlashCommand("removenotification", "Removes a notification")]
+        
+        [SlashCommand("removenotification", "Removes a notification")]
 		[EnabledInDm(true)]
 		public async Task RemoveNotification(
 		[Summary("Item")]
 			[Autocomplete(typeof(ItemNameHandler))]
 			int itemId)
 		{
-			await RespondAsync("You removed the notification for item " + itemId);
+			await RespondAsync("You removed the notification for item " + itemDb[itemId].NameZh + " - " + itemId);
 			using var scope = services.CreateScope();
 			using var context = scope.ServiceProvider.GetRequiredService<Context>();
 			var notifiction = context.ExchangePrivateNotifications.FirstOrDefault(n => n.ItemId == itemId && n.DiscordId == Context.User.Id);
@@ -54,6 +56,25 @@ namespace RomDiscord.DiscordModules
 				context.ExchangePrivateNotifications.Remove(notifiction);
 			await context.SaveChangesAsync();
 		}
+
+		[SlashCommand("listnotifications", "Lists all your notification")]
+		[EnabledInDm(true)]
+		public async Task ListNotifications()
+		{
+			await DeferAsync();
+			using var scope = services.CreateScope();
+			using var context = scope.ServiceProvider.GetRequiredService<Context>();
+			var notifictions = context.ExchangePrivateNotifications.Where(n => n.DiscordId == Context.User.Id);
+			try
+			{
+				await ModifyOriginalResponseAsync(m => m.Content = string.Join("\n", notifictions.Select(n => itemDb.db[n.ItemId].NameZh + " - " + n.ItemId)));
+			}
+			catch (Exception ex)
+			{
+				await ModifyOriginalResponseAsync(m => m.Content = ex.Message);
+			}
+		}
+
 	}
 
 
@@ -69,8 +90,11 @@ namespace RomDiscord.DiscordModules
 		{
 			var typed = autocompleteInteraction.Data.Options.First().Value.ToString() ?? "";
 
+			int itemId = 0;
+			int.TryParse(typed, out itemId);
+
 			var results = itemDb.db
-				.Where(kv => kv.Value.NameZh.ToLower().Contains(typed.ToLower()))
+				.Where(kv => kv.Value.NameZh.ToLower().Contains(typed.ToLower()) || kv.Key == itemId)
 				.Select(i => new AutocompleteResult(i.Value.NameZh, i.Value.id));
 
 			// max - 25 suggestions at a time (API limit)
