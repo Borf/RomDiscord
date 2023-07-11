@@ -192,6 +192,7 @@ namespace RomDiscord.Controllers
                             newRolls.Add(new
                             {
                                 Equip = roll.GodEquip.GodEquip.Name,
+                                Level = roll.GodEquip.Level,
                                 DiscordId = roll.UserId.ToString(),
                                 Ign = ign
                             });
