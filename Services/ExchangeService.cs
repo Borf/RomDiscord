@@ -302,9 +302,9 @@ namespace RomDiscord.Services
             }
             if (itemData.RefineLevel > 0)
                 builder.AddField("Refine level", "+" + itemData.RefineLevel, true);
-            builder.AddField("Item ID", item.ItemId, true);
-			if(!string.IsNullOrEmpty(itemData.Guid))
-				builder.AddField("ID", itemData.Guid, true);
+//            builder.AddField("Item ID", item.ItemId, true);
+//			if(!string.IsNullOrEmpty(itemData.Guid))
+//				builder.AddField("ID", itemData.Guid, true);
             if (itemData.Enchants != null && itemData.Enchants.Count > 0)
 			{
 				string enchants = "";
