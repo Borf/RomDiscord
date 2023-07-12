@@ -181,7 +181,7 @@ namespace RomDiscord.Controllers
 
                     var nextData = currentDate.AddDays(len);
 
-                    if (DateTime.Now >= currentDate && DateTime.Now <= nextData)
+                    if (DateTime.Now >= currentDate && DateTime.Now < nextData)
                     {
                         string lastName = "";
                         List<object> newRolls = new();
