@@ -159,12 +159,6 @@ namespace RomDiscord.Controllers
             var guild = context.Guilds.First(g => g.GuildId == guildid);
             SettingsModel settings = new SettingsModel(moduleSettings, guild);
 
-            EmbedBuilder eb = new EmbedBuilder()
-                .WithTitle("God Equip")
-                .WithImageUrl("https://cdn.discordapp.com/attachments/819834309489590322/917802629155930152/GodRaffleFooter.png")
-                .WithColor(9021952)
-                .WithDescription("This is the god equipment for week of " + startDate.Date.ToString("D"))
-                .WithFooter(new EmbedFooterBuilder().WithText("").WithIconUrl("https://cdn.discordapp.com/emojis/736643099274641419.png"));
             var currentDate = startDate;
             int c = 0;
             int rollAmountIndex = 0;
@@ -211,7 +205,7 @@ namespace RomDiscord.Controllers
             //var startDate = DateTime.Now.AddDays(-((int)startDate.DayOfWeek - (int)DayOfWeek.Monday));
 
             //var rolls = await context.GodEquipRolls.Where(r => r.GodEquip.Guild.GuildId == guildid && r.Date == DateOnly.FromDateTime(startDate)).Include(r => r.GodEquip.GodEquip).ToListAsync();
-            return Ok("");
+            return Ok(new { RollId = 0, Rolles = new object[] { } });
         }
 
 
