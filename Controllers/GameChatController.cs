@@ -103,7 +103,7 @@ namespace RomDiscord.Controllers
                         break;
                     //await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
                     var data = JsonSerializer.Deserialize<NewChatMessage>(System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count));
-                    Console.WriteLine(data.ToString());
+                    Console.WriteLine("Data: |" + data.ToString() + "|");
                     if (data.Type == NewChatMessage.MessageType.ChatBox)
                     {
                         var client = new HttpClient();
