@@ -1,4 +1,46 @@
-﻿namespace RomDiscord.Models.Rest.Api;
+﻿using RomDiscord.Models.Db;
+using System.Text.Json.Serialization;
+
+namespace RomDiscord.Models.Rest.Api;
+
+
+public class ItemInfo
+{
+    public class EnchantInfo
+    {
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Enchant Enchant { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? Level { get; set; }
+    }
+
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? RefineLevel { get; set; }
+    public ulong Price { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string Guid { get; set; } = "";
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<EnchantInfo>? Enchants { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Broken { get; set; } = null;
+    public int ItemId { get; set; }
+
+}
+public class NewChatMessage
+{
+    public enum MessageType
+    {
+        Guild,
+        ChatBox
+    }
+    public string Message { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public MessageType Type { get; set; } = MessageType.Guild;
+    public List<ItemInfo> ItemInfos { get; set; } = new List<ItemInfo>();
+    public ulong UserId { get; set; }
+}
 
 
 public class ChatMessage

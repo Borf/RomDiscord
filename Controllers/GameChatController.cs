@@ -102,21 +102,21 @@ namespace RomDiscord.Controllers
                     if (result.CloseStatus.HasValue)
                         break;
                     //await webSocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
-                    ChatMessage data = JsonSerializer.Deserialize<ChatMessage>(System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count));
+                    var data = JsonSerializer.Deserialize<NewChatMessage>(System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count));
 
-                    if (data.channel == "ECHAT_CHANNEL_ROOM")
+                    if (data.Type == NewChatMessage.MessageType.ChatBox)
                     {
                         var client = new HttpClient();
                         var SuccessWebHook = new
                         {
-                            username = data.name.Replace("\u0002", ""),
-                            content = "ChatBoxCommand: `" + data.str + "`",
+                            username = data.Name.Replace("\u0002", ""),
+                            content = "ChatBoxCommand: `" + data.Message + "`",
                         };
                         var content = new StringContent(JsonSerializer.Serialize(SuccessWebHook), Encoding.UTF8, "application/json");
                         await client.PostAsync("https://discordapp.com/api/webhooks/1082048936660967444/60n3-ykh0SMXKcgDe_Vd3aOV1v2bu0sgX0rDs2KSAj8rm8Jc_9vPEPY9GOqOP_p8Likt", content);
 
-                        bool isAdmin = settings.Get(guild, "GameChat", "admins", "").Split(",").Select(x => ulong.Parse(x)).Contains(ulong.Parse(data.id));
-                        string msg = data.str.Trim();
+                        bool isAdmin = settings.Get(guild, "GameChat", "admins", "").Split(",").Select(x => ulong.Parse(x)).Contains(data.UserId);
+                        string msg = data.Message.Trim();
                         string api = settings.Get(guild, "GameChat", "api", "");
 
                         if (isAdmin)
@@ -139,8 +139,8 @@ namespace RomDiscord.Controllers
                         var client = new HttpClient();
                         var SuccessWebHook = new
                         {
-                            username = data.name.Replace("\u0002", ""),
-                            content = data.str,
+                            username = data.Name.Replace("\u0002", ""),
+                            content = data.Message,
                         };
                         var content = new StringContent(JsonSerializer.Serialize(SuccessWebHook), Encoding.UTF8, "application/json");
                         await client.PostAsync("https://discordapp.com/api/webhooks/1082048936660967444/60n3-ykh0SMXKcgDe_Vd3aOV1v2bu0sgX0rDs2KSAj8rm8Jc_9vPEPY9GOqOP_p8Likt", content);
