@@ -174,23 +174,11 @@ namespace RomDiscord.Controllers
                         }
 
                         if(data.Photo == null)
-                            await wh.SendMessageAsync(text: msg, embeds: embeds, username: msg);
+                            await wh.SendMessageAsync(text: msg, embeds: embeds, username: user);
                         else
                         {
-                            await wh.SendFileAsync(new FileAttachment(await new HttpClient().GetStreamAsync($"http://eu-cdn.ro.com/game/photo/72001/user/{data.Photo.Charid}/{data.Photo.SourceId}.png"), "image.png"), text: msg, embeds: embeds, username: msg);
+                            await wh.SendFileAsync(new FileAttachment(await new HttpClient().GetStreamAsync($"http://eu-cdn.ro.com/game/photo/72001/user/{data.Photo.Charid}/{data.Photo.SourceId}.png"), "image.png"), text: "Photo:", embeds: embeds, username: msg);
                         }
-
-
-                        //if(data.Photo == null)
-
-                        var client = new HttpClient();
-                        var SuccessWebHook = new
-                        {
-                            username = data.Name.Replace("\u0002", ""),
-                            content = data.Message,
-                        };
-                        var content = new StringContent(JsonSerializer.Serialize(SuccessWebHook), Encoding.UTF8, "application/json");
-                        await client.PostAsync("https://discordapp.com/api/webhooks/1082048936660967444/60n3-ykh0SMXKcgDe_Vd3aOV1v2bu0sgX0rDs2KSAj8rm8Jc_9vPEPY9GOqOP_p8Likt", content);
                     }
 
                 }
