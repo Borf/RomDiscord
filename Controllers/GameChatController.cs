@@ -177,7 +177,7 @@ namespace RomDiscord.Controllers
                             await wh.SendMessageAsync(text: msg, embeds: embeds, username: user);
                         else
                         {
-                            await wh.SendFileAsync(new FileAttachment(await new HttpClient().GetStreamAsync($"http://eu-cdn.ro.com/game/photo/72001/user/{data.Photo.Charid}/{data.Photo.SourceId}.png"), "image.png"), text: "Photo:", embeds: embeds, username: msg);
+                            await wh.SendFileAsync(new FileAttachment(await new HttpClient().GetStreamAsync($"http://eu-cdn.ro.com/game/photo/72001/user/{data.Photo.Charid}/{data.Photo.SourceId}.png"), "image.png"), text: "Photo:", embeds: embeds, username: user);
                         }
                     }
 
