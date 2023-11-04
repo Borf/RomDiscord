@@ -154,7 +154,7 @@ namespace RomDiscord.Controllers
                             {
                                 var itemdbitem = itemDb.db[item.ItemId];
                                 int index = msg.IndexOf("{il=Item}");
-                                if (index > 0)
+                                if (index >= 0)
                                     msg = msg[0..index] + "__" + itemdbitem.NameZh + "__" + msg[(index + 9)..];
                                 var eb = new EmbedBuilder()
                                     .WithTitle(itemdbitem.NameZh)
