@@ -9,6 +9,8 @@ using System.Text.Json;
 using System.Text;
 using System.Text.Json.Nodes;
 using RomDiscord.Models.Rest.Api;
+using Discord.Webhook;
+using Discord;
 
 namespace RomDiscord.Controllers
 {
@@ -20,15 +22,17 @@ namespace RomDiscord.Controllers
 		private readonly ModuleSettings settings;
 		private readonly DiscordSocketClient discord;
 		private readonly Context context;
+        private readonly ItemDb itemDb;
 
-		public GameChatController(ModuleSettings settings, DiscordSocketClient discord, Context context)
-		{
-			this.settings = settings;
-			this.discord = discord;
-			this.context = context;
-		}
+        public GameChatController(ModuleSettings settings, DiscordSocketClient discord, Context context, ItemDb itemDb)
+        {
+            this.settings = settings;
+            this.discord = discord;
+            this.context = context;
+            this.itemDb = itemDb;
+        }
 
-		public IActionResult Index()
+        public IActionResult Index()
 		{
 			var guild = this.Guild(context);
 			if (guild == null)
@@ -78,7 +82,7 @@ namespace RomDiscord.Controllers
                 var channel = discord.GetGuild(guild.DiscordGuildId).GetTextChannel(channelId);
 
                 using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-                await Echo(webSocket, guild, context, channel, settings);
+                await Echo(webSocket, guild, context, channel, settings, itemDb);
             }
             else
             {
@@ -88,7 +92,8 @@ namespace RomDiscord.Controllers
         }
 
         static List<(int, WebSocket)> sockets = new List<(int, WebSocket)>();
-        static async Task Echo(WebSocket webSocket, Guild guild, Context context, SocketTextChannel channel, ModuleSettings settings)
+
+        static async Task Echo(WebSocket webSocket, Guild guild, Context context, SocketTextChannel channel, ModuleSettings settings, ItemDb itemDb)
         {
             Console.WriteLine("Got a websocket!");
             WebSocketReceiveResult? result = null;
@@ -136,6 +141,48 @@ namespace RomDiscord.Controllers
                     }
                     else
                     {
+                        using var wh = new DiscordWebhookClient("https://discordapp.com/api/webhooks/1082048936660967444/60n3-ykh0SMXKcgDe_Vd3aOV1v2bu0sgX0rDs2KSAj8rm8Jc_9vPEPY9GOqOP_p8Likt");
+
+                        string msg = data.Message;
+                        string user = data.Name.Replace("\u0002", "");
+                        List<Embed>? embeds = null;
+
+                        if(data.ItemInfos.Count > 0)
+                        {
+                            embeds = new List<Embed>();
+                            foreach(var  item in data.ItemInfos)
+                            {
+                                var itemdbitem = itemDb.db[item.ItemId];
+                                int index = msg.IndexOf("{il=Item}");
+                                if (index > 0)
+                                    msg = msg[0..index] + "__" + itemdbitem.NameZh + "__" + msg[(index + 9)..];
+                                var eb = new EmbedBuilder()
+                                    .WithTitle(itemdbitem.NameZh)
+                                    .AddField("Price", Util.Util.FormatPrice(item.Price) + "z");
+
+                                if (item.RefineLevel != null)
+                                    eb.AddField("Refine", "+" + item.RefineLevel);
+                                if(item.Broken != null)
+                                    eb.AddField("Broken", item.Broken.ToString());
+                                if(item.Enchants != null)
+                                {
+                                    eb.AddField("Enchants", string.Join("\n", item.Enchants.Select(e => e.ToString())));
+                                }
+
+                                embeds.Add(eb.Build());
+                            }
+                        }
+
+                        if(data.Photo == null)
+                            await wh.SendMessageAsync(text: msg, embeds: embeds, username: msg);
+                        else
+                        {
+                            await wh.SendFileAsync(new FileAttachment(await new HttpClient().GetStreamAsync($"http://eu-cdn.ro.com/game/photo/72001/user/{data.Photo.Charid}/{data.Photo.SourceId}.png"), "image.png"), text: msg, embeds: embeds, username: msg);
+                        }
+
+
+                        //if(data.Photo == null)
+
                         var client = new HttpClient();
                         var SuccessWebHook = new
                         {

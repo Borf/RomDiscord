@@ -26,9 +26,13 @@ namespace RomDiscord.Util
 		{
 			return (long)(value.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))).TotalSeconds;
 		}
+		public static string FormatPrice(ulong price)
+        {
+            return price.ToString("N0").Replace(",", ".");
+        }
 
 
-		public static string Color(this Job cls)
+        public static string Color(this Job cls)
 		{
 			switch(cls)
 			{
